@@ -1,0 +1,26 @@
+# Core document parsing
+unstructured[pdf]==0.11.8
+unstructured-inference==0.7.23
+
+# PDF processing dependencies
+pdf2image==1.16.3
+pdfminer.six==20221105
+pytesseract==0.3.10
+pillow==10.1.0
+
+# Table detection and processing (required for hi_res strategy)
+python-magic==0.4.27
+layoutparser[paddledetection]==0.3.4
+torch==2.1.1
+torchvision==0.16.1
+
+# Data processing
+pandas==2.1.3
+numpy==1.26.2
+
+# Future database connectors (to be used in later phases)
+# mongodb (pymongo) - for NoSQL table storage
+# qdrant-client - for vector storage
+
+# Utilities
+python-dotenv==1.0.0
