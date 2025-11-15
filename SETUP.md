@@ -108,6 +108,37 @@ pip install -r requirements.txt
 
 ### Common Installation Issues
 
+#### Issue: Dependency conflict with `unstructured-inference`
+
+**Error message**:
+```
+ERROR: Cannot install unstructured-inference and unstructured[pdf] because these package versions have conflicting dependencies.
+The conflict is caused by:
+    unstructured[pdf] 0.11.8 depends on unstructured-inference==0.7.18
+```
+
+**Solution 1**: Use the minimal requirements file:
+```bash
+pip install -r requirements-minimal.txt
+```
+
+**Solution 2**: Install packages step-by-step in the correct order:
+```bash
+# Clear any partial installation
+pip uninstall unstructured unstructured-inference -y
+
+# Install in order - unstructured FIRST
+pip install "unstructured[pdf]>=0.11.0,<0.12.0"
+pip install torch torchvision
+pip install layoutparser
+pip install pandas numpy python-dotenv
+```
+
+**Solution 3**: Let pip figure it out with no version constraints:
+```bash
+pip install unstructured[pdf] torch torchvision layoutparser pandas numpy python-dotenv
+```
+
 #### Issue: `torch` installation is very slow
 
 **Solution**: Use CPU-only PyTorch for faster installation:

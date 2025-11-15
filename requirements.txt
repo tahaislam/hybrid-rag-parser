@@ -13,35 +13,35 @@
 # =============================================================================
 
 # Core document parsing
-# Note: unstructured 0.11.x is stable for Python 3.9-3.11
-# Versions 0.12+ through 0.14.x require Python <3.12
+# Let unstructured[pdf] manage its own dependencies (including unstructured-inference)
+# Using 0.11.x range as it's stable for Python 3.9-3.11
 unstructured[pdf]>=0.11.0,<0.12.0
-unstructured-inference>=0.7.20,<0.8.0
 
 # PDF processing dependencies
-pdf2image>=1.16.0
-pdfminer.six>=20221105
-pytesseract>=0.3.10
-pillow>=10.0.0,<11.0.0
+# Flexible versions - let pip resolve
+pdf2image
+pdfminer.six
+pytesseract
+pillow
 
 # Table detection and processing (required for hi_res strategy)
-python-magic>=0.4.27
-layoutparser[paddledetection]>=0.3.4
+python-magic
+layoutparser[paddledetection]
 
 # PyTorch - Computer vision for table detection
-# Using compatible versions for Python 3.9-3.11
-torch>=2.1.0,<2.4.0
-torchvision>=0.16.0,<0.19.0
+# Let pip install compatible versions for your Python
+torch
+torchvision
 
 # Data processing
-pandas>=2.0.0
-numpy>=1.24.0,<2.0.0
+pandas
+numpy
 
 # Future database connectors (to be used in later phases)
 # Uncomment when implementing Phase 2:
-# pymongo>=4.6.0           # MongoDB client for table storage
-# qdrant-client>=1.7.0     # Qdrant vector database client
-# sentence-transformers>=2.2.0  # For generating embeddings
+# pymongo           # MongoDB client for table storage
+# qdrant-client     # Qdrant vector database client
+# sentence-transformers  # For generating embeddings
 
 # Utilities
-python-dotenv>=1.0.0
+python-dotenv
