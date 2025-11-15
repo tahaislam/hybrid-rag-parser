@@ -34,7 +34,7 @@ class DocumentProcessor:
     def process_pdf(
         self,
         file_path: str,
-        strategy: str = "hi_res",
+        strategy: str = "auto",
         extract_tables_as: str = "html"
     ) -> Tuple[List[Dict[str, Any]], List[str]]:
         """
@@ -42,7 +42,10 @@ class DocumentProcessor:
 
         Args:
             file_path: Path to the PDF file to process
-            strategy: Parsing strategy ('hi_res' for table detection, 'fast' for speed)
+            strategy: Parsing strategy - 'auto' (recommended), 'fast', or 'hi_res'
+                     - 'auto': Smart detection, works without layoutparser
+                     - 'fast': Faster processing, good table detection
+                     - 'hi_res': Best accuracy but requires layoutparser (often fails)
             extract_tables_as: Format for table extraction ('html' or 'text')
 
         Returns:

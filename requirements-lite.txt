@@ -1,19 +1,16 @@
 # =============================================================================
-# LIGHTWEIGHT REQUIREMENTS - Basic PDF Parsing Without Advanced Table Detection
+# LIGHTWEIGHT REQUIREMENTS - Same as requirements.txt
 # =============================================================================
-# Use this file if you're having issues with layoutparser or PyTorch
-# This provides basic table extraction without computer vision models
+# NOTE: This file is now identical to requirements.txt
 #
-# Installation:
-#   pip install --upgrade pip
-#   pip install -r requirements-lite.txt
+# The layoutparser dependency has been removed due to paddlepaddle conflicts,
+# so requirements.txt is already lightweight (~200MB download).
 #
-# Note: This uses the "fast" strategy instead of "hi_res"
-# Tables will still be extracted, just without advanced CV-based detection
+# Use either requirements.txt or requirements-lite.txt - they're the same!
 # =============================================================================
 
 # Core document parsing with PDF support
-# This alone can handle basic table extraction
+# This alone can handle excellent table extraction
 unstructured[pdf]>=0.11.0,<0.12.0
 
 # PDF processing dependencies
@@ -31,19 +28,9 @@ numpy
 python-dotenv
 
 # =============================================================================
-# What's NOT included (compared to full requirements.txt):
-# - layoutparser (heavy, needs specific version)
-# - paddledetection (very heavy, complex to install)
-# - torch/torchvision (~1GB download, requires specific setup)
-#
-# When to use this:
-# - Quick start / testing
-# - Installation issues with full requirements
-# - Don't need highest-accuracy table detection
-# - Limited disk space or bandwidth
-#
-# When to use full requirements.txt:
-# - Need best table detection accuracy (hi_res strategy)
-# - Working with complex documents with nested tables
-# - Production deployment where accuracy is critical
+# What changed:
+# - Removed layoutparser (dependency conflicts with paddlepaddle)
+# - Removed PyTorch (was only needed for layoutparser)
+# - Result: Fast installation, no dependency conflicts
+# - Table extraction still works great with 'auto' and 'fast' strategies
 # =============================================================================

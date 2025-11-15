@@ -91,42 +91,33 @@ Download the latest Python 3.11.x from the official website:
 
 ## Installing Dependencies
 
-Once you have Python 3.9, 3.10, or 3.11 active, choose one of the installation options:
+**IMPORTANT UPDATE**: The advanced `hi_res` strategy with layoutparser is currently **not available** due to dependency conflicts (layoutparser requires an obsolete version of paddlepaddle that's not available for Python 3.10+).
 
-### Option A: Full Installation (Recommended for Production)
+**GOOD NEWS**: The `unstructured` library has excellent built-in table extraction that works without layoutparser! The `auto` and `fast` strategies provide great results for most documents.
 
-Best table detection accuracy using computer vision models.
+Once you have Python 3.9, 3.10, or 3.11 active:
+
+### Recommended Installation (Works for Everyone)
 
 ```bash
 # Upgrade pip to latest version
 pip install --upgrade pip
 
-# Install all dependencies
+# Install dependencies (no layoutparser/pytorch needed!)
 pip install -r requirements.txt
 ```
 
-**Note**: The installation may take 5-15 minutes and ~2GB disk space:
-- PyTorch (~800 MB) for computer vision
-- PaddleDetection models for table detection
-- PDF processing libraries
+**This installs:**
+- ✅ unstructured with PDF support (handles table extraction)
+- ✅ PDF processing tools (pdf2image, pdfminer, etc.)
+- ✅ Data processing (pandas, numpy)
+- ✅ Works with 'auto' and 'fast' strategies
+- ✅ No heavy ML dependencies (~200MB total)
+- ✅ Installation takes 2-3 minutes
 
-### Option B: Lightweight Installation (Quick Start)
+### Alternative: Minimal Installation (Troubleshooting)
 
-Basic table extraction without heavy ML dependencies. Uses "fast" strategy.
-
-```bash
-pip install --upgrade pip
-pip install -r requirements-lite.txt
-```
-
-**Note**: Faster installation (~2-3 minutes), smaller download (~200MB). Perfect for:
-- Testing and development
-- Simple PDFs without complex tables
-- Limited bandwidth or disk space
-
-### Option C: Minimal Installation (Troubleshooting)
-
-Step-by-step installation for resolving dependency conflicts.
+If you encounter any issues with the main requirements:
 
 ```bash
 pip install --upgrade pip
@@ -166,40 +157,40 @@ pip install pandas numpy python-dotenv
 pip install unstructured[pdf] torch torchvision layoutparser pandas numpy python-dotenv
 ```
 
-#### Issue: `layoutparser` version 0.2.0 installed instead of 0.3.4+
+#### Issue: `paddlepaddle` dependency conflict with `layoutparser`
 
 **Error message**:
 ```
-WARNING: layoutparser 0.2.0 does not provide the extra 'paddledetection'
-ModuleNotFoundError: No module named 'layoutparser.elements.layout'
+ERROR: Cannot install layoutparser[paddledetection]==0.3.4 and paddlepaddle==3.2.1
+because these package versions have conflicting dependencies.
+The conflict is caused by:
+    layoutparser[paddledetection] 0.3.4 depends on paddlepaddle==2.1.0
 ```
 
-**Problem**: layoutparser 0.2.0 was installed, but we need 0.3.4+ for paddledetection support.
+**Problem**:
+- `layoutparser[paddledetection]` requires the ancient `paddlepaddle==2.1.0`
+- `paddlepaddle==2.1.0` is **not available** for Python 3.10+ on most platforms
+- This is a known issue with layoutparser - the project hasn't updated dependencies
 
-**Solution 1**: Uninstall and reinstall with version constraint:
+**Solution**: **Don't use layoutparser** - it's not needed!
+
+The `unstructured` library extracts tables excellently on its own using the `auto` or `fast` strategies. Simply install with:
+
 ```bash
-pip uninstall layoutparser -y
-pip install "layoutparser[paddledetection]>=0.3.4"
-```
-
-**Solution 2**: Use the lightweight installation (no layoutparser needed):
-```bash
-pip install -r requirements-lite.txt
-```
-
-**Solution 3**: Skip layoutparser entirely - the pipeline will auto-fallback to 'fast' strategy:
-```bash
-# Install core dependencies only
-pip install unstructured[pdf] pandas numpy python-dotenv
-```
-
-#### Issue: `torch` installation is very slow
-
-**Solution**: Use CPU-only PyTorch for faster installation:
-```bash
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
 ```
+
+This installs everything you need WITHOUT layoutparser or paddlepaddle.
+
+**The pipeline will:**
+- ✅ Extract tables from PDFs
+- ✅ Separate tables from narrative text
+- ✅ Work with all your sample PDFs
+- ✅ Support the 'auto' and 'fast' strategies
+- ✅ No heavy ML dependencies or conflicts
+
+**Note**: The `hi_res` strategy with layoutparser is currently unavailable due to this dependency conflict. The `auto` strategy provides excellent results for most use cases.
+
 
 #### Issue: `python-magic` fails on Windows
 

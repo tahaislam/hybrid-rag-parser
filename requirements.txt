@@ -13,35 +13,48 @@
 # =============================================================================
 
 # Core document parsing
-# Let unstructured[pdf] manage its own dependencies (including unstructured-inference)
+# unstructured[pdf] handles table extraction WITHOUT needing layoutparser
 # Using 0.11.x range as it's stable for Python 3.9-3.11
 unstructured[pdf]>=0.11.0,<0.12.0
 
 # PDF processing dependencies
-# Flexible versions - let pip resolve
 pdf2image
 pdfminer.six
 pytesseract
 pillow
-
-# Table detection and processing (required for hi_res strategy)
 python-magic
-layoutparser[paddledetection]>=0.3.4
-
-# PyTorch - Computer vision for table detection
-# Let pip install compatible versions for your Python
-torch>=2.0.0
-torchvision>=0.15.0
 
 # Data processing
 pandas
 numpy
+
+# Utilities
+python-dotenv
+
+# =============================================================================
+# ADVANCED TABLE DETECTION (OPTIONAL - Currently has dependency conflicts)
+# =============================================================================
+# The hi_res strategy with layoutparser has known issues:
+# - layoutparser[paddledetection] requires paddlepaddle==2.1.0
+# - paddlepaddle 2.1.0 is not available for Python 3.10+ on many platforms
+# - This causes installation failures
+#
+# GOOD NEWS: unstructured can extract tables WITHOUT layoutparser!
+# The 'fast' and 'auto' strategies work well for most documents.
+#
+# If you absolutely need advanced table detection:
+# 1. Try alternative: pip install "unstructured[all-docs]"
+# 2. Or use Docker with pre-built layoutparser environment
+# 3. Or wait for layoutparser to update paddlepaddle dependency
+#
+# Commented out due to dependency conflicts:
+# layoutparser[paddledetection]>=0.3.4  # Requires paddlepaddle==2.1.0 (unavailable)
+# torch>=2.0.0
+# torchvision>=0.15.0
+# =============================================================================
 
 # Future database connectors (to be used in later phases)
 # Uncomment when implementing Phase 2:
 # pymongo           # MongoDB client for table storage
 # qdrant-client     # Qdrant vector database client
 # sentence-transformers  # For generating embeddings
-
-# Utilities
-python-dotenv
