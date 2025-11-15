@@ -26,12 +26,12 @@ pillow
 
 # Table detection and processing (required for hi_res strategy)
 python-magic
-layoutparser[paddledetection]
+layoutparser[paddledetection]>=0.3.4
 
 # PyTorch - Computer vision for table detection
 # Let pip install compatible versions for your Python
-torch
-torchvision
+torch>=2.0.0
+torchvision>=0.15.0
 
 # Data processing
 pandas

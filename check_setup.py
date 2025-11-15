@@ -40,26 +40,64 @@ def check_dependencies():
     """Check if required dependencies are installed."""
     print("\n📦 Checking Dependencies:")
 
-    dependencies = {
+    # Core dependencies (required)
+    core_dependencies = {
         'unstructured': 'unstructured',
-        'torch': 'PyTorch',
-        'layoutparser': 'LayoutParser',
         'PIL': 'Pillow',
         'pandas': 'pandas',
         'numpy': 'NumPy',
+        'dotenv': 'python-dotenv',
     }
 
-    all_installed = True
+    # Optional dependencies for hi_res strategy
+    optional_dependencies = {
+        'torch': 'PyTorch (optional - for hi_res strategy)',
+        'layoutparser': 'LayoutParser (optional - for hi_res strategy)',
+    }
 
-    for module, display_name in dependencies.items():
+    all_core_installed = True
+    any_optional_installed = False
+
+    print("\n   Core Dependencies:")
+    for module, display_name in core_dependencies.items():
         try:
             __import__(module)
             print(f"   ✅ {display_name}")
         except ImportError:
             print(f"   ❌ {display_name} - Not installed")
-            all_installed = False
+            all_core_installed = False
 
-    return all_installed
+    print("\n   Optional Dependencies (for advanced table detection):")
+    for module, display_name in optional_dependencies.items():
+        try:
+            imported = __import__(module)
+            # For layoutparser, check version
+            if module == 'layoutparser':
+                version = getattr(imported, '__version__', 'unknown')
+                if version != 'unknown':
+                    major, minor = version.split('.')[:2]
+                    if int(major) == 0 and int(minor) < 3:
+                        print(f"   ⚠️  {display_name} - Version {version} (need >=0.3.4)")
+                        print(f"       Install with: pip install 'layoutparser[paddledetection]>=0.3.4'")
+                    else:
+                        print(f"   ✅ {display_name} - v{version}")
+                        any_optional_installed = True
+                else:
+                    print(f"   ✅ {display_name}")
+                    any_optional_installed = True
+            else:
+                print(f"   ✅ {display_name}")
+                any_optional_installed = True
+        except ImportError:
+            print(f"   ⚠️  {display_name} - Not installed")
+            print(f"       (Pipeline will use 'fast' strategy instead of 'hi_res')")
+
+    if not any_optional_installed:
+        print("\n   ℹ️  Note: Without optional dependencies, the pipeline uses 'fast' strategy")
+        print("   ℹ️  For best table detection, install: pip install -r requirements.txt")
+        print("   ℹ️  For quick start, you can use: pip install -r requirements-lite.txt")
+
+    return all_core_installed
 
 
 def check_system_dependencies():
@@ -163,7 +201,9 @@ def print_recommendations(results):
 
         if not results['dependencies']:
             print("  2. Install Python dependencies:")
-            print("     pip install -r requirements.txt")
+            print("     Option A (Full - best accuracy): pip install -r requirements.txt")
+            print("     Option B (Lite - faster install): pip install -r requirements-lite.txt")
+            print("     Option C (Minimal - troubleshooting): pip install -r requirements-minimal.txt")
 
         if not results['data_directory']:
             print("  3. Add PDF files to the 'data' directory")

@@ -91,7 +91,11 @@ Download the latest Python 3.11.x from the official website:
 
 ## Installing Dependencies
 
-Once you have Python 3.11 active:
+Once you have Python 3.9, 3.10, or 3.11 active, choose one of the installation options:
+
+### Option A: Full Installation (Recommended for Production)
+
+Best table detection accuracy using computer vision models.
 
 ```bash
 # Upgrade pip to latest version
@@ -101,10 +105,33 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-**Note**: The installation may take 5-15 minutes due to large dependencies:
+**Note**: The installation may take 5-15 minutes and ~2GB disk space:
 - PyTorch (~800 MB) for computer vision
 - PaddleDetection models for table detection
 - PDF processing libraries
+
+### Option B: Lightweight Installation (Quick Start)
+
+Basic table extraction without heavy ML dependencies. Uses "fast" strategy.
+
+```bash
+pip install --upgrade pip
+pip install -r requirements-lite.txt
+```
+
+**Note**: Faster installation (~2-3 minutes), smaller download (~200MB). Perfect for:
+- Testing and development
+- Simple PDFs without complex tables
+- Limited bandwidth or disk space
+
+### Option C: Minimal Installation (Troubleshooting)
+
+Step-by-step installation for resolving dependency conflicts.
+
+```bash
+pip install --upgrade pip
+pip install -r requirements-minimal.txt
+```
 
 ### Common Installation Issues
 
@@ -137,6 +164,33 @@ pip install pandas numpy python-dotenv
 **Solution 3**: Let pip figure it out with no version constraints:
 ```bash
 pip install unstructured[pdf] torch torchvision layoutparser pandas numpy python-dotenv
+```
+
+#### Issue: `layoutparser` version 0.2.0 installed instead of 0.3.4+
+
+**Error message**:
+```
+WARNING: layoutparser 0.2.0 does not provide the extra 'paddledetection'
+ModuleNotFoundError: No module named 'layoutparser.elements.layout'
+```
+
+**Problem**: layoutparser 0.2.0 was installed, but we need 0.3.4+ for paddledetection support.
+
+**Solution 1**: Uninstall and reinstall with version constraint:
+```bash
+pip uninstall layoutparser -y
+pip install "layoutparser[paddledetection]>=0.3.4"
+```
+
+**Solution 2**: Use the lightweight installation (no layoutparser needed):
+```bash
+pip install -r requirements-lite.txt
+```
+
+**Solution 3**: Skip layoutparser entirely - the pipeline will auto-fallback to 'fast' strategy:
+```bash
+# Install core dependencies only
+pip install unstructured[pdf] pandas numpy python-dotenv
 ```
 
 #### Issue: `torch` installation is very slow

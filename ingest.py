@@ -68,13 +68,31 @@ class DocumentProcessor:
 
         # Process the PDF with unstructured.io
         # hi_res strategy uses computer vision for better table detection
-        elements = partition_pdf(
-            filename=str(file_path),
-            strategy=strategy,
-            infer_table_structure=True,  # Enable table structure inference
-            extract_images_in_pdf=False,  # Focus on text and tables only
-            include_page_breaks=False,
-        )
+        try:
+            elements = partition_pdf(
+                filename=str(file_path),
+                strategy=strategy,
+                infer_table_structure=True,  # Enable table structure inference
+                extract_images_in_pdf=False,  # Focus on text and tables only
+                include_page_breaks=False,
+            )
+        except (ImportError, ModuleNotFoundError) as e:
+            if strategy == "hi_res":
+                print(f"\n⚠️  Warning: {e}")
+                print("⚠️  hi_res strategy requires layoutparser and PyTorch")
+                print("⚠️  Falling back to 'fast' strategy...")
+                print("⚠️  For full table detection, install: pip install -r requirements.txt\n")
+
+                # Retry with fast strategy
+                elements = partition_pdf(
+                    filename=str(file_path),
+                    strategy="fast",
+                    infer_table_structure=True,
+                    extract_images_in_pdf=False,
+                    include_page_breaks=False,
+                )
+            else:
+                raise
 
         # Initialize storage lists
         tables_to_store = []

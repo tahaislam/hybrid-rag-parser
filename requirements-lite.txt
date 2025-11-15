@@ -1,0 +1,49 @@
+# =============================================================================
+# LIGHTWEIGHT REQUIREMENTS - Basic PDF Parsing Without Advanced Table Detection
+# =============================================================================
+# Use this file if you're having issues with layoutparser or PyTorch
+# This provides basic table extraction without computer vision models
+#
+# Installation:
+#   pip install --upgrade pip
+#   pip install -r requirements-lite.txt
+#
+# Note: This uses the "fast" strategy instead of "hi_res"
+# Tables will still be extracted, just without advanced CV-based detection
+# =============================================================================
+
+# Core document parsing with PDF support
+# This alone can handle basic table extraction
+unstructured[pdf]>=0.11.0,<0.12.0
+
+# PDF processing dependencies
+pdf2image
+pdfminer.six
+pytesseract
+pillow
+python-magic
+
+# Data processing
+pandas
+numpy
+
+# Utilities
+python-dotenv
+
+# =============================================================================
+# What's NOT included (compared to full requirements.txt):
+# - layoutparser (heavy, needs specific version)
+# - paddledetection (very heavy, complex to install)
+# - torch/torchvision (~1GB download, requires specific setup)
+#
+# When to use this:
+# - Quick start / testing
+# - Installation issues with full requirements
+# - Don't need highest-accuracy table detection
+# - Limited disk space or bandwidth
+#
+# When to use full requirements.txt:
+# - Need best table detection accuracy (hi_res strategy)
+# - Working with complex documents with nested tables
+# - Production deployment where accuracy is critical
+# =============================================================================
