@@ -1,26 +1,47 @@
+# =============================================================================
+# TABLE-AWARE RAG PIPELINE - DEPENDENCIES
+# =============================================================================
+# PYTHON VERSION REQUIREMENT: 3.9 - 3.11
+#
+# IMPORTANT: This project requires Python 3.9, 3.10, or 3.11
+# Python 3.12+ is NOT supported due to unstructured library constraints
+#
+# If you have Python 3.12, please install Python 3.11:
+#   - Using pyenv: pyenv install 3.11.9 && pyenv local 3.11.9
+#   - Using conda: conda create -n rag-pipeline python=3.11
+#   - Download from: https://www.python.org/downloads/
+# =============================================================================
+
 # Core document parsing
-unstructured[pdf]==0.11.8
-unstructured-inference==0.7.23
+# Note: unstructured 0.11.x is stable for Python 3.9-3.11
+# Versions 0.12+ through 0.14.x require Python <3.12
+unstructured[pdf]>=0.11.0,<0.12.0
+unstructured-inference>=0.7.20,<0.8.0
 
 # PDF processing dependencies
-pdf2image==1.16.3
-pdfminer.six==20221105
-pytesseract==0.3.10
-pillow==10.1.0
+pdf2image>=1.16.0
+pdfminer.six>=20221105
+pytesseract>=0.3.10
+pillow>=10.0.0,<11.0.0
 
 # Table detection and processing (required for hi_res strategy)
-python-magic==0.4.27
-layoutparser[paddledetection]==0.3.4
-torch==2.1.1
-torchvision==0.16.1
+python-magic>=0.4.27
+layoutparser[paddledetection]>=0.3.4
+
+# PyTorch - Computer vision for table detection
+# Using compatible versions for Python 3.9-3.11
+torch>=2.1.0,<2.4.0
+torchvision>=0.16.0,<0.19.0
 
 # Data processing
-pandas==2.1.3
-numpy==1.26.2
+pandas>=2.0.0
+numpy>=1.24.0,<2.0.0
 
 # Future database connectors (to be used in later phases)
-# mongodb (pymongo) - for NoSQL table storage
-# qdrant-client - for vector storage
+# Uncomment when implementing Phase 2:
+# pymongo>=4.6.0           # MongoDB client for table storage
+# qdrant-client>=1.7.0     # Qdrant vector database client
+# sentence-transformers>=2.2.0  # For generating embeddings
 
 # Utilities
-python-dotenv==1.0.0
+python-dotenv>=1.0.0
