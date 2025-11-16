@@ -53,8 +53,7 @@ python-dotenv
 # torchvision>=0.15.0
 # =============================================================================
 
-# Future database connectors (to be used in later phases)
-# Uncomment when implementing Phase 2:
-# pymongo           # MongoDB client for table storage
-# qdrant-client     # Qdrant vector database client
-# sentence-transformers  # For generating embeddings
+# Database connectors
+pymongo           # MongoDB client for table storage
+qdrant-client     # Qdrant vector database client
+sentence-transformers  # For generating embeddings
