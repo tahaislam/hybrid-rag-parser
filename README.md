@@ -187,9 +187,38 @@ After running `run_pipeline.py`, view your data in the web interfaces:
 **Qdrant (Vector Embeddings)**
 1. Open http://localhost:6334 in your browser
 2. Click on the `document_chunks` collection
-3. Explore vector points and their associated text payloads
+3. Click on any point ID to view its details
+4. **Important**: Look at the **"payload"** section to see the actual text
+   - The "vector" field shows 384 numbers (embedding) - ignore this
+   - The "payload" field contains: `text`, `source_filename`, `chunk_index`
+5. Expand the payload to read the text content
 
-### Option 2: Query Databases Programmatically
+**Note**: If the Qdrant UI is hard to read, use the helper script instead:
+```bash
+python view_qdrant_data.py
+```
+
+### Option 2: Use the Qdrant Data Viewer Script (Recommended)
+
+For easier viewing of Qdrant data, use the included helper script:
+
+```bash
+# View collection statistics and recent points
+python view_qdrant_data.py
+
+# View all text chunks from a specific file
+python view_qdrant_data.py view sample1.pdf
+
+# Search for similar text
+python view_qdrant_data.py search "payment terms"
+
+# Show detailed statistics
+python view_qdrant_data.py stats
+```
+
+This script displays the actual text content in a readable format, without the confusing vector numbers.
+
+### Option 3: Query Databases Programmatically
 
 #### Query MongoDB for Tables
 
@@ -369,6 +398,7 @@ hybrid-rag-parser/
 ├── embedding.py              # Text embedding and vector generation
 ├── db_connectors.py          # MongoDB and Qdrant database connectors
 ├── run_pipeline.py           # Main orchestration script (run this!)
+├── view_qdrant_data.py       # Helper script to view Qdrant data easily
 ├── docker-compose.yml        # Database container configuration
 ├── example_usage.py          # Comprehensive usage examples
 ├── check_setup.py            # Installation verification script
@@ -392,6 +422,7 @@ hybrid-rag-parser/
 | `embedding.py` | Generate 384-dim vectors using sentence-transformers |
 | `db_connectors.py` | MongoDB and Qdrant connection management |
 | `run_pipeline.py` | **Main entry point** - orchestrates full pipeline |
+| `view_qdrant_data.py` | **View & search** Qdrant data in readable format |
 | `docker-compose.yml` | Spin up MongoDB, Qdrant, and Mongo Express |
 | `example_usage.py` | Usage examples for document processing |
 | `check_setup.py` | Verify Python dependencies are installed |
@@ -589,6 +620,27 @@ If `run_pipeline.py` fails to connect:
 1. Ensure Docker containers are running: `docker ps`
 2. Check database credentials in `db_connectors.py` match `docker-compose.yml`
 3. Wait a few seconds after starting containers for databases to initialize
+
+### Qdrant UI Shows Weird Characters
+
+If you see strange encoded text in the Qdrant web UI:
+
+**The Problem:** You're looking at the "vector" field (384 floating-point numbers) instead of the actual text.
+
+**The Solution:**
+1. In the Qdrant UI, click on a point ID
+2. Scroll down to the **"payload"** section
+3. Expand the payload to see:
+   - `text`: The actual readable text
+   - `source_filename`: Which PDF it came from
+   - `chunk_index`: Position in the document
+
+**Better Option:** Use the helper script for easier viewing:
+```bash
+python view_qdrant_data.py
+```
+
+This displays the text in a clean, readable format without the vector numbers.
 
 ## Contributing
 
