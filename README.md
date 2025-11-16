@@ -225,8 +225,8 @@ This script displays the actual text content in a readable format, without the c
 ```python
 from pymongo import MongoClient
 
-# Connect to MongoDB
-client = MongoClient("mongodb://root:examplepassword@localhost:27017/")
+# Connect to MongoDB (authSource=admin is required for root user)
+client = MongoClient("mongodb://root:examplepassword@localhost:27017/?authSource=admin")
 db = client["hybrid_rag_db"]
 collection = db["document_tables"]
 
@@ -620,6 +620,22 @@ If `run_pipeline.py` fails to connect:
 1. Ensure Docker containers are running: `docker ps`
 2. Check database credentials in `db_connectors.py` match `docker-compose.yml`
 3. Wait a few seconds after starting containers for databases to initialize
+
+### MongoDB Authentication Failed Error
+
+If you see an error like:
+```
+Authentication failed., full error: {'ok': 0.0, 'errmsg': 'Authentication failed.', 'code': 18}
+```
+
+**The Problem:** The MongoDB connection string is missing the `authSource` parameter.
+
+**The Fix:** The connection string in `db_connectors.py` should include `?authSource=admin`:
+```python
+MongoClient("mongodb://root:examplepassword@localhost:27017/?authSource=admin")
+```
+
+This tells MongoDB to authenticate against the `admin` database where the root user is stored. This fix is already applied in the latest version.
 
 ### Qdrant UI Shows Weird Characters
 
