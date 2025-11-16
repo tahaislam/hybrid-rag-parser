@@ -15,7 +15,7 @@ class MongoConnector:
     Fabric-Ready: This logic can be swapped for a Cosmos DB (Mongo API) client.
     """
     def __init__(self, db_name: str = "hybrid_rag_db"):
-        self.client = MongoClient("mongodb://localhost:27017/")
+        self.client = MongoClient("mongodb://root:examplepassword@localhost:27017/")
         self.db = self.client[db_name]
         self.collection = self.db["document_tables"]
         print(f"Connected to MongoDB. Database: '{db_name}', Collection: 'document_tables'")
