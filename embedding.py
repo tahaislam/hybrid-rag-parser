@@ -39,7 +39,8 @@ class EmbeddingModel:
         Returns:
             A list of vector embeddings.
         """
-        return self.model.encode(texts, convert_to_list=True)
+        embeddings_array = self.model.encode(texts)
+        return embeddings_array.tolist()
 
     def prepare_qdrant_points(
         self, 
