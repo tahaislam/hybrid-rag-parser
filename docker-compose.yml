@@ -2,18 +2,20 @@ version: '3.8'
 
 services:
   # NoSQL Database (for Tables/JSON)
-  # Fabric-Ready: Migrates to Cosmos DB (Mongo API)
   mongo:
     image: mongo:latest
     container_name: hybrid-rag-mongo
     ports:
-      - "27017:27017" # Default MongoDB port
+      - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    # Change the password as needed
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: examplepassword
     restart: always
 
   # Vector Database (for Text Embeddings)
-  # Fabric-Ready: Migrates to Fabric Real-Time Intelligence (KQL)
   qdrant:
     image: qdrant/qdrant:latest
     container_name: hybrid-rag-qdrant
@@ -22,6 +24,20 @@ services:
       - "6334:6334" # Qdrant REST API / Web UI
     volumes:
       - qdrant-storage:/qdrant/storage
+    restart: always
+
+  # Web UI for MongoDB
+  mongo-express:
+    image: mongo-express:latest
+    container_name: hybrid-rag-mongo-express
+    ports:
+      - "8081:8081" # Web UI will be on localhost:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: examplepassword
+      ME_CONFIG_MONGODB_SERVER: mongo # Connects to the 'mongo' service
+    depends_on:
+      - mongo
     restart: always
 
 volumes:
