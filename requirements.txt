@@ -15,7 +15,7 @@
 # Core document parsing
 # unstructured[pdf] handles table extraction WITHOUT needing layoutparser
 # Using 0.11.x range as it's stable for Python 3.9-3.11
-unstructured[pdf]>=0.11.0,<0.12.0
+unstructured[pdf]>=0.11.0
 
 # PDF processing dependencies
 pdf2image
@@ -26,7 +26,7 @@ python-magic
 
 # Data processing
 pandas
-numpy
+numpy<2.0  # Avoid major version 2 for compatibility
 
 # Utilities
 python-dotenv
