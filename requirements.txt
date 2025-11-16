@@ -1,0 +1,60 @@
+# =============================================================================
+# TABLE-AWARE RAG PIPELINE - DEPENDENCIES
+# =============================================================================
+# PYTHON VERSION REQUIREMENT: 3.9 - 3.11
+#
+# IMPORTANT: This project requires Python 3.9, 3.10, or 3.11
+# Python 3.12+ is NOT supported due to unstructured library constraints
+#
+# If you have Python 3.12, please install Python 3.11:
+#   - Using pyenv: pyenv install 3.11.9 && pyenv local 3.11.9
+#   - Using conda: conda create -n rag-pipeline python=3.11
+#   - Download from: https://www.python.org/downloads/
+# =============================================================================
+
+# Core document parsing
+# unstructured[pdf] handles table extraction WITHOUT needing layoutparser
+# Using 0.11.x range as it's stable for Python 3.9-3.11
+unstructured[pdf]>=0.11.0
+
+# PDF processing dependencies
+pdf2image
+pdfminer.six
+pytesseract
+pillow
+python-magic
+
+# Data processing
+pandas
+numpy<2.0  # Avoid major version 2 for compatibility
+
+# Utilities
+python-dotenv
+
+# =============================================================================
+# ADVANCED TABLE DETECTION (OPTIONAL - Currently has dependency conflicts)
+# =============================================================================
+# The hi_res strategy with layoutparser has known issues:
+# - layoutparser[paddledetection] requires paddlepaddle==2.1.0
+# - paddlepaddle 2.1.0 is not available for Python 3.10+ on many platforms
+# - This causes installation failures
+#
+# GOOD NEWS: unstructured can extract tables WITHOUT layoutparser!
+# The 'fast' and 'auto' strategies work well for most documents.
+#
+# If you absolutely need advanced table detection:
+# 1. Try alternative: pip install "unstructured[all-docs]"
+# 2. Or use Docker with pre-built layoutparser environment
+# 3. Or wait for layoutparser to update paddlepaddle dependency
+#
+# Commented out due to dependency conflicts:
+# layoutparser[paddledetection]>=0.3.4  # Requires paddlepaddle==2.1.0 (unavailable)
+# torch>=2.0.0
+# torchvision>=0.15.0
+# =============================================================================
+
+# Future database connectors (to be used in later phases)
+# Uncomment when implementing Phase 2:
+# pymongo           # MongoDB client for table storage
+# qdrant-client     # Qdrant vector database client
+# sentence-transformers  # For generating embeddings
