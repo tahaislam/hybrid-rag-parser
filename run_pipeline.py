@@ -55,7 +55,8 @@ def main():
         
         try:
             # --- Phase 1: Ingest ---
-            tables, texts = processor.process_pdf(file_path, strategy="fast")
+            # Use "auto" strategy for better table detection
+            tables, texts = processor.process_pdf(file_path, strategy="auto")
             
             if not tables and not texts:
                 print("No content extracted.")

@@ -109,11 +109,13 @@ You should see three containers running:
 
 ### 4. Access the Web UIs (Optional)
 
-- **MongoDB Web UI**: http://localhost:8081
-  - Username: (configured in docker-compose.yml)
-  - View and query stored tables
+- **MongoDB Web UI (Mongo Express)**: http://localhost:8081
+  - Login Username: `admin`
+  - Login Password: `pass`
+  - Navigate to `hybrid_rag_db` → `document_tables` to view tables
 
 - **Qdrant Web UI**: http://localhost:6334
+  - No login required
   - View collections and vector points
   - Explore embeddings and metadata
 
@@ -178,8 +180,9 @@ After running `run_pipeline.py`, view your data in the web interfaces:
 
 **MongoDB (Tables)**
 1. Open http://localhost:8081 in your browser
-2. Navigate to `hybrid_rag_db` → `document_tables`
-3. Browse extracted tables with all metadata
+2. Login with username: `admin`, password: `pass`
+3. Navigate to `hybrid_rag_db` → `document_tables`
+4. Browse extracted tables with all metadata
 
 **Qdrant (Vector Embeddings)**
 1. Open http://localhost:6334 in your browser
@@ -411,7 +414,9 @@ The pipeline uses the following default configurations:
 | Embedding Model | Name | all-MiniLM-L6-v2 |
 | Embedding Model | Vector Size | 384 |
 | PDF Directory | Path | ./data |
-| Parse Strategy | Default | fast |
+| Parse Strategy | Default | auto |
+| Mongo Express | Web UI Username | admin |
+| Mongo Express | Web UI Password | pass |
 
 ### Customizing Settings
 
@@ -429,8 +434,9 @@ The pipeline uses the following default configurations:
 1. Edit `run_pipeline.py` (line 23)
 
 **Change parsing strategy:**
-1. Edit `run_pipeline.py` (line 58)
-2. Options: `"auto"`, `"fast"`, `"hi_res"`
+1. Edit `run_pipeline.py` (line 59)
+2. Options: `"auto"` (recommended), `"fast"`, `"hi_res"`
+3. Note: `"auto"` provides the best balance of speed and table detection accuracy
 
 ## Pipeline Workflow
 
