@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # NoSQL Database (for Tables/JSON)
+  # Fabric-Ready: Migrates to Cosmos DB (Mongo API)
+  mongo:
+    image: mongo:latest
+    container_name: hybrid-rag-mongo
+    ports:
+      - "27017:27017" # Default MongoDB port
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+
+  # Vector Database (for Text Embeddings)
+  # Fabric-Ready: Migrates to Fabric Real-Time Intelligence (KQL)
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: hybrid-rag-qdrant
+    ports:
+      - "6333:6333" # Qdrant gRPC port
+      - "6334:6334" # Qdrant REST API / Web UI
+    volumes:
+      - qdrant-storage:/qdrant/storage
+    restart: always
+
+volumes:
+  mongo-data:
+  qdrant-storage:
