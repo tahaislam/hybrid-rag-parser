@@ -69,10 +69,29 @@ class QueryEngine:
         """
         Main RAG query function.
         """
+        
+        # 1. Retrieve Vector Context
         vector_context = self.search_vectors(question)
-        table_context = self.search_tables(question) 
+        
+        # 2. Implement "Smart Retrieval"
+        # Get the source file from the *most relevant* text chunk.
+        source_file = None
+        if vector_context:
+            # The first result (index 0) is the most relevant one
+            source_file = vector_context[0].get('source_filename')
+            if source_file:
+                print(f"Vector search identified: '{source_file}' as the most relevant document.")
+            else:
+                print("Vector search found chunks, but no source_filename metadata.")
+        else:
+            print("Vector search found no relevant text chunks.")
 
-        # 2. Build the LLM Prompt
+        # 3. Retrieve Table Context
+        # Now, only search for tables from that *specific file* (if found).
+        table_context = self.search_tables(question, file_filter=source_file)
+
+        # 4. Build the LLM Prompt (Same as before)
+        # This is the core of RAG!
         prompt = f"""
         You are an expert assistant for answering questions about complex documents.
         You will be given context from two sources:
@@ -101,10 +120,9 @@ class QueryEngine:
         YOUR ANSWER:
         """
         
-        # 3. Augment & Generate (Send to LLM)
+        # 5. Augment & Generate (Send to LLM) (Same as before)
         print("\nSynthesizing answer with local LLM (Ollama)...")
         try:
-            # --- CHANGED: Use the Ollama API syntax ---
             response = self.llm_client.chat(
                 model=self.llm_model,
                 messages=[
