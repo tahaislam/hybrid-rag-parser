@@ -54,6 +54,7 @@ CLI Tool: ask.py "Your question here"
 - **RAG Query Interface**: Ask questions and get answers using local LLM (Ollama)
 - **Hybrid Retrieval**: Combines vector search and table lookups for comprehensive answers
 - **100% Private**: Uses local Ollama models - no data sent to external APIs
+- **Comprehensive Testing**: Sample PDFs and 20+ test cases to validate RAG performance
 - **Migration Ready**: Designed for easy migration to Microsoft Fabric
 
 ## Requirements
@@ -318,6 +319,70 @@ limit=5  # default is 3
 self.llm_client = Client(host='http://your-server:11434')
 ```
 
+## Testing the RAG System
+
+### Generate Sample Data and Run Tests
+
+The project includes comprehensive testing tools to validate RAG performance:
+
+**1. Generate Sample PDFs**
+
+First, install the PDF generation library:
+```bash
+pip install reportlab
+```
+
+Then generate 5 diverse sample PDFs:
+```bash
+python generate_sample_pdfs.py
+```
+
+This creates sample PDFs with various table types:
+- `project_budget.pdf` - Project budget and timeline
+- `financial_report.pdf` - Quarterly revenue and expenses
+- `research_results.pdf` - ML model performance data
+- `product_specs.pdf` - Hardware specifications
+- `sales_report.pdf` - Regional sales data
+
+**2. Ingest Sample Data**
+
+Process the sample PDFs:
+```bash
+python run_pipeline.py
+```
+
+**3. Run Comprehensive Tests**
+
+Execute 20+ test cases:
+```bash
+python test_rag_queries.py
+```
+
+The test suite validates:
+- Simple table lookups (e.g., "What is the estimated hours for software development?")
+- Row/column intersections (e.g., "What was Q4 revenue for Cloud Services?")
+- Best performer identification (e.g., "Which ML model had highest accuracy?")
+- Multi-value extractions (e.g., "List all project phases")
+- Comparison queries (e.g., "Compare Random Forest and XGBoost models")
+
+**Test Output Example:**
+```
+TEST: Simple Table Lookup - Single Value
+QUESTION: What is the estimated hours for software development?
+ANSWER: Based on the project budget table, the estimated hours for
+        software development is 160 hours.
+✓ PASSED: Answer contains expected content
+Time taken: 5.23 seconds
+
+TEST SUMMARY
+Total tests run: 20
+Tests passed: 19
+Tests failed: 1
+Average response time: 6.45 seconds
+```
+
+**For detailed testing documentation**, see [TESTING.md](TESTING.md)
+
 ## Viewing Stored Data
 
 ### Option 1: Using Web UIs (Easiest)
@@ -544,22 +609,30 @@ hybrid-rag-parser/
 ├── embedding.py              # Text embedding and vector generation
 ├── db_connectors.py          # MongoDB and Qdrant database connectors
 ├── run_pipeline.py           # Main orchestration script (run this!)
-├── query.py                  # RAG query engine with Ollama (NEW!)
-├── ask.py                    # CLI tool for asking questions (NEW!)
+├── query.py                  # RAG query engine with Ollama
+├── ask.py                    # CLI tool for asking questions
 ├── view_qdrant_data.py       # Helper script to view Qdrant data easily
+├── generate_sample_pdfs.py   # Generate test PDFs (NEW!)
+├── test_rag_queries.py       # Comprehensive test suite (NEW!)
 ├── docker-compose.yml        # Database container configuration
 ├── example_usage.py          # Comprehensive usage examples
 ├── check_setup.py            # Installation verification script
 ├── requirements.txt          # Python dependencies (includes ollama)
 ├── requirements-minimal.txt  # Minimal dependencies
 ├── requirements-lite.txt     # Lightweight option
+├── README.md                 # This file
 ├── SETUP.md                  # Detailed setup instructions
+├── TESTING.md                # Testing guide (NEW!)
 ├── .gitignore                # Git ignore rules
-├── data/                     # Sample PDF files
-│   ├── sample1.pdf
-│   ├── sample2.pdf
-│   └── sample3.pdf
-└── README.md                 # This file
+└── data/                     # Sample PDF files
+    ├── sample1.pdf
+    ├── sample2.pdf
+    ├── sample3.pdf
+    ├── project_budget.pdf    # Generated test PDF
+    ├── financial_report.pdf  # Generated test PDF
+    ├── research_results.pdf  # Generated test PDF
+    ├── product_specs.pdf     # Generated test PDF
+    └── sales_report.pdf      # Generated test PDF
 ```
 
 ## Module Descriptions
@@ -573,9 +646,12 @@ hybrid-rag-parser/
 | `query.py` | **RAG query engine** - hybrid search with local LLM |
 | `ask.py` | **CLI tool** - simple command-line interface for questions |
 | `view_qdrant_data.py` | **View & search** Qdrant data in readable format |
+| `generate_sample_pdfs.py` | **Generate test data** - creates 5 sample PDFs with diverse tables |
+| `test_rag_queries.py` | **Test suite** - 20+ test cases to validate RAG performance |
 | `docker-compose.yml` | Spin up MongoDB, Qdrant, and Mongo Express |
 | `example_usage.py` | Usage examples for document processing |
 | `check_setup.py` | Verify Python dependencies are installed |
+| `TESTING.md` | Detailed testing guide and troubleshooting |
 
 ## Configuration
 
