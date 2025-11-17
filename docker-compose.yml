@@ -36,6 +36,9 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: examplepassword
       ME_CONFIG_MONGODB_SERVER: mongo # Connects to the 'mongo' service
+      ME_CONFIG_MONGODB_URL: mongodb://root:examplepassword@mongo:27017/?authSource=admin
+      ME_CONFIG_BASICAUTH_USERNAME: admin # Web UI login username
+      ME_CONFIG_BASICAUTH_PASSWORD: pass # Web UI login password
     depends_on:
       - mongo
     restart: always
