@@ -27,6 +27,16 @@ Document Parser (ingest.py)
 
 Orchestration: run_pipeline.py
 Databases: docker-compose.yml
+
+Query Interface (NEW):
+    ↓
+User Question → QueryEngine (query.py)
+    ├──> Vector Search → Qdrant (semantic similarity)
+    ├──> Table Search → MongoDB (filtered by source file)
+    └──> Context + Question → Ollama (local LLM)
+                                └─> Answer
+
+CLI Tool: ask.py "Your question here"
 ```
 
 ## Features
@@ -41,6 +51,9 @@ Databases: docker-compose.yml
 - **Docker Containerization**: One-command database setup
 - **Full Pipeline Orchestration**: End-to-end processing with `run_pipeline.py`
 - **Detailed Metadata**: Capture page numbers, coordinates, and file information
+- **RAG Query Interface**: Ask questions and get answers using local LLM (Ollama)
+- **Hybrid Retrieval**: Combines vector search and table lookups for comprehensive answers
+- **100% Private**: Uses local Ollama models - no data sent to external APIs
 - **Migration Ready**: Designed for easy migration to Microsoft Fabric
 
 ## Requirements
@@ -48,6 +61,8 @@ Databases: docker-compose.yml
 **Python Version**: 3.9, 3.10, or 3.11 (3.12+ is NOT supported)
 
 **Docker**: Required for running MongoDB and Qdrant databases
+
+**Ollama**: Required for the RAG query interface (optional if you only want to ingest documents)
 
 ### System Dependencies
 
@@ -71,6 +86,37 @@ If you don't have Docker installed:
 - **Ubuntu/Debian**: [Install Docker Engine](https://docs.docker.com/engine/install/ubuntu/)
 - **macOS**: [Install Docker Desktop](https://docs.docker.com/desktop/install/mac-install/)
 - **Windows**: [Install Docker Desktop](https://docs.docker.com/desktop/install/windows-install/)
+
+### Ollama Installation (For RAG Queries)
+
+To use the query interface, install Ollama on your local machine:
+
+**macOS & Linux:**
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+**Windows:**
+- Download from [ollama.com/download](https://ollama.com/download)
+
+**Pull a model:**
+```bash
+# Default model used by query.py
+ollama pull llama3:8b
+
+# Alternative models
+ollama pull mistral
+ollama pull llama2
+```
+
+**Verify Ollama is running:**
+```bash
+# Check if Ollama server is running
+curl http://localhost:11434/api/tags
+
+# Or simply test it
+ollama run llama3:8b "Hello!"
+```
 
 ## Installation
 
@@ -170,6 +216,106 @@ python ingest.py
 
 # Process a specific PDF
 python ingest.py path/to/your/document.pdf
+```
+
+## Querying Your RAG System
+
+Once you've ingested documents using `run_pipeline.py`, you can ask questions and get answers based on your document contents.
+
+### Prerequisites
+
+1. Documents must be ingested (run `python run_pipeline.py` first)
+2. Ollama must be installed and running
+3. A model must be pulled (default: `llama3:8b`)
+
+### Option 1: Command-Line Interface (Easiest)
+
+Use the `ask.py` CLI tool:
+
+```bash
+# Ask a question
+python ask.py "What are the key findings in the document?"
+
+# Ask about specific data
+python ask.py "What were the Q3 revenue numbers?"
+
+# Ask about tables
+python ask.py "Summarize the financial results table"
+```
+
+**Example Output:**
+```
+Initializing Query Engine...
+Connected to Ollama. Using model: llama3:8b
+Searching vectors for: 'What are the key findings?'
+Found 3 relevant text chunks.
+Vector search identified: 'sample1.pdf' as the most relevant document.
+Searching tables in MongoDB...
+Found 2 relevant tables.
+
+Synthesizing answer with local LLM (Ollama)...
+
+================================================== ANSWER ==================================================
+Based on the provided documents, the key findings include:
+1. Revenue increased by 15% year-over-year
+2. Customer satisfaction scores improved to 4.5/5
+3. The new product line exceeded expectations
+====================================================================================================
+```
+
+### Option 2: Python API
+
+Use the `QueryEngine` programmatically:
+
+```python
+from query import QueryEngine
+
+# Initialize the engine
+engine = QueryEngine()
+
+# Ask a question
+answer = engine.ask("What are the payment terms?")
+print(answer)
+
+# The engine automatically:
+# 1. Searches for semantically similar text chunks
+# 2. Identifies the most relevant source file
+# 3. Retrieves tables from that specific file
+# 4. Combines context and generates an answer
+```
+
+### How It Works: Hybrid RAG
+
+The `QueryEngine` implements a hybrid retrieval strategy:
+
+1. **Vector Search** (Qdrant): Finds the 3 most semantically similar text chunks to your question
+2. **Smart File Detection**: Identifies which source file is most relevant from the vector results
+3. **Targeted Table Retrieval** (MongoDB): Fetches tables only from that specific file
+4. **Context Building**: Combines text chunks and tables into a rich context
+5. **Answer Generation** (Ollama): Sends context + question to local LLM for synthesis
+
+**Why this approach?**
+- Avoids irrelevant table data from unrelated documents
+- Provides both narrative context and structured data
+- Keeps all processing 100% local and private
+- No API keys or external services needed
+
+### Customizing the Query Engine
+
+Edit `query.py` to customize:
+
+```python
+# Change the LLM model (line 23)
+self.llm_model = 'mistral'  # or 'llama2', 'codellama', etc.
+
+# Adjust number of text chunks retrieved (line 44)
+limit=5  # default is 3
+
+# Adjust number of tables retrieved (line 58)
+.limit(10)  # default is 5
+
+# Change Ollama server URL (line 22)
+self.llm_client = Client(host='http://your-server:11434')
 ```
 
 ## Viewing Stored Data
@@ -398,11 +544,13 @@ hybrid-rag-parser/
 ├── embedding.py              # Text embedding and vector generation
 ├── db_connectors.py          # MongoDB and Qdrant database connectors
 ├── run_pipeline.py           # Main orchestration script (run this!)
+├── query.py                  # RAG query engine with Ollama (NEW!)
+├── ask.py                    # CLI tool for asking questions (NEW!)
 ├── view_qdrant_data.py       # Helper script to view Qdrant data easily
 ├── docker-compose.yml        # Database container configuration
 ├── example_usage.py          # Comprehensive usage examples
 ├── check_setup.py            # Installation verification script
-├── requirements.txt          # Python dependencies (full version)
+├── requirements.txt          # Python dependencies (includes ollama)
 ├── requirements-minimal.txt  # Minimal dependencies
 ├── requirements-lite.txt     # Lightweight option
 ├── SETUP.md                  # Detailed setup instructions
@@ -422,6 +570,8 @@ hybrid-rag-parser/
 | `embedding.py` | Generate 384-dim vectors using sentence-transformers |
 | `db_connectors.py` | MongoDB and Qdrant connection management |
 | `run_pipeline.py` | **Main entry point** - orchestrates full pipeline |
+| `query.py` | **RAG query engine** - hybrid search with local LLM |
+| `ask.py` | **CLI tool** - simple command-line interface for questions |
 | `view_qdrant_data.py` | **View & search** Qdrant data in readable format |
 | `docker-compose.yml` | Spin up MongoDB, Qdrant, and Mongo Express |
 | `example_usage.py` | Usage examples for document processing |
@@ -446,6 +596,8 @@ The pipeline uses the following default configurations:
 | Embedding Model | Vector Size | 384 |
 | PDF Directory | Path | ./data |
 | Parse Strategy | Default | auto |
+| Ollama | Host | localhost:11434 |
+| Ollama | Default Model | llama3:8b |
 | Mongo Express | Web UI Username | admin |
 | Mongo Express | Web UI Password | pass |
 
@@ -468,6 +620,11 @@ The pipeline uses the following default configurations:
 1. Edit `run_pipeline.py` (line 59)
 2. Options: `"auto"` (recommended), `"fast"`, `"hi_res"`
 3. Note: `"auto"` provides the best balance of speed and table detection accuracy
+
+**Change Ollama model:**
+1. Edit `query.py` (line 23)
+2. Options: `"llama3:8b"`, `"mistral"`, `"llama2"`, `"codellama"`, etc.
+3. Make sure to pull the model first: `ollama pull <model-name>`
 
 ## Pipeline Workflow
 
@@ -503,11 +660,14 @@ When you run `python run_pipeline.py`, here's what happens:
 - [x] Web UIs for data visualization
 - [x] Full pipeline orchestration
 
-### Phase 2: Query Interface (In Progress)
-- [ ] Hybrid query API (combine table lookups + vector search)
-- [ ] RESTful API endpoints
-- [ ] Query optimization
-- [ ] Caching layer
+### Phase 2: Query Interface ✅ CORE COMPLETE
+- [x] Hybrid query API (combine table lookups + vector search)
+- [x] Local LLM integration with Ollama
+- [x] Smart retrieval strategy (file-based filtering)
+- [x] CLI tool for easy querying
+- [x] Python API for programmatic access
+- [ ] RESTful API endpoints (Future)
+- [ ] Query optimization and caching (Future)
 
 ### Phase 3: Microsoft Fabric Migration (Planned)
 - [ ] Migrate MongoDB → Cosmos DB (MongoDB API)
@@ -658,6 +818,61 @@ python view_qdrant_data.py
 
 This displays the text in a clean, readable format without the vector numbers.
 
+### Ollama Connection Issues
+
+If you get "OLLAMA CONNECTION FAILED" when running `query.py` or `ask.py`:
+
+**Check if Ollama is running:**
+```bash
+# Test connection
+curl http://localhost:11434/api/tags
+
+# If not running, start Ollama
+ollama serve  # Linux/macOS
+# Or launch the Ollama app on macOS/Windows
+```
+
+**Verify model is pulled:**
+```bash
+# List available models
+ollama list
+
+# If llama3:8b is missing, pull it
+ollama pull llama3:8b
+```
+
+**Connection refused errors:**
+1. Ensure Ollama is installed: `ollama --version`
+2. Check if port 11434 is blocked by firewall
+3. Try running Ollama explicitly: `ollama serve`
+
+**Model not found errors:**
+```bash
+# Pull the specific model mentioned in the error
+ollama pull llama3:8b
+
+# Or use a different model by editing query.py line 23
+```
+
+**Slow response times:**
+- First query loads the model into memory (slow)
+- Subsequent queries use cached model (faster)
+- Consider using smaller models like `llama2:7b` or `mistral:7b`
+- Check system resources: `ollama ps` to see running models
+
+**Alternative models to try:**
+```bash
+# Smaller, faster models
+ollama pull mistral
+ollama pull llama2
+
+# Larger, more accurate models
+ollama pull llama3:70b  # Requires significant RAM
+
+# List all available models
+ollama list
+```
+
 ## Contributing
 
 Contributions are welcome! Please:
@@ -686,6 +901,7 @@ Built with:
 - [sentence-transformers](https://www.sbert.net/) - Text embeddings (all-MiniLM-L6-v2)
 - [MongoDB](https://www.mongodb.com/) - NoSQL database for table storage
 - [Qdrant](https://qdrant.tech/) - Vector database for semantic search
+- [Ollama](https://ollama.com/) - Local LLM inference for RAG queries
 - [Docker](https://www.docker.com/) - Containerization
 - [Mongo Express](https://github.com/mongo-express/mongo-express) - MongoDB web interface
 
