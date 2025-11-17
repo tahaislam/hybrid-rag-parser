@@ -5,8 +5,8 @@ Handles the RAG (Retrieval-Augmented Generation) query process.
 THIS VERSION USES A LOCAL, 100% PRIVATE OLLAMA MODEL.
 """
 
-from db_connectors import MongoConnector, QdrantConnector
-from embedding import EmbeddingModel
+from src.database.db_connectors import MongoConnector, QdrantConnector
+from src.ingestion.embedding import EmbeddingModel
 from ollama import Client
 from typing import List, Dict, Any
 from html.parser import HTMLParser

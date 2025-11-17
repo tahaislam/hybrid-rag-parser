@@ -605,53 +605,89 @@ tables, texts = processor.process_pdf("file.pdf", strategy="hi_res")
 
 ```
 hybrid-rag-parser/
-├── ingest.py                 # Main document processing module
-├── embedding.py              # Text embedding and vector generation
-├── db_connectors.py          # MongoDB and Qdrant database connectors
-├── run_pipeline.py           # Main orchestration script (run this!)
-├── query.py                  # RAG query engine with Ollama
-├── ask.py                    # CLI tool for asking questions
-├── view_qdrant_data.py       # Helper script to view Qdrant data easily
-├── generate_sample_pdfs.py   # Generate test PDFs (NEW!)
-├── test_rag_queries.py       # Comprehensive test suite (NEW!)
-├── docker-compose.yml        # Database container configuration
-├── example_usage.py          # Comprehensive usage examples
-├── check_setup.py            # Installation verification script
-├── requirements.txt          # Python dependencies (includes ollama)
-├── requirements-minimal.txt  # Minimal dependencies
-├── requirements-lite.txt     # Lightweight option
-├── README.md                 # This file
-├── SETUP.md                  # Detailed setup instructions
-├── TESTING.md                # Testing guide (NEW!)
-├── .gitignore                # Git ignore rules
-└── data/                     # Sample PDF files
-    ├── sample1.pdf
-    ├── sample2.pdf
-    ├── sample3.pdf
-    ├── project_budget.pdf    # Generated test PDF
-    ├── financial_report.pdf  # Generated test PDF
-    ├── research_results.pdf  # Generated test PDF
-    ├── product_specs.pdf     # Generated test PDF
-    └── sales_report.pdf      # Generated test PDF
+├── src/                      # Source code organized by functionality
+│   ├── __init__.py
+│   ├── ingestion/           # Document processing and embedding
+│   │   ├── __init__.py
+│   │   ├── ingest.py        # PDF parsing and table/text extraction
+│   │   └── embedding.py     # Text embedding with sentence-transformers
+│   ├── database/            # Database connectors
+│   │   ├── __init__.py
+│   │   └── db_connectors.py # MongoDB and Qdrant connections
+│   ├── query/               # RAG query engine
+│   │   ├── __init__.py
+│   │   └── query.py         # Hybrid search with local LLM
+│   └── utils/               # Utility scripts
+│       ├── __init__.py
+│       └── view_qdrant_data.py # View/search Qdrant data
+├── tests/                   # Test suite and sample data generation
+│   ├── __init__.py
+│   ├── generate_sample_pdfs.py # Generate 5 diverse test PDFs
+│   └── test_rag_queries.py     # 20+ automated test cases
+├── examples/                # Usage examples
+│   ├── __init__.py
+│   └── example_usage.py    # Document processing examples
+├── data/                    # PDF files for ingestion
+│   ├── sample1.pdf
+│   ├── sample2.pdf
+│   ├── sample3.pdf
+│   ├── project_budget.pdf  # Generated test PDF
+│   ├── financial_report.pdf
+│   ├── research_results.pdf
+│   ├── product_specs.pdf
+│   └── sales_report.pdf
+├── run_pipeline.py          # Main orchestration script (run this!)
+├── ask.py                   # CLI tool for asking questions
+├── check_setup.py           # Installation verification
+├── docker-compose.yml       # Database containers
+├── requirements.txt         # Python dependencies
+├── README.md                # This file
+├── SETUP.md                 # Detailed setup instructions
+├── TESTING.md               # Testing guide
+└── .gitignore               # Git ignore rules
 ```
 
 ## Module Descriptions
 
+### Main Entry Points (Root Level)
+
 | Module | Purpose |
 |--------|---------|
-| `ingest.py` | PDF parsing, table/text extraction |
-| `embedding.py` | Generate 384-dim vectors using sentence-transformers |
-| `db_connectors.py` | MongoDB and Qdrant connection management |
 | `run_pipeline.py` | **Main entry point** - orchestrates full pipeline |
-| `query.py` | **RAG query engine** - hybrid search with local LLM |
 | `ask.py` | **CLI tool** - simple command-line interface for questions |
-| `view_qdrant_data.py` | **View & search** Qdrant data in readable format |
-| `generate_sample_pdfs.py` | **Generate test data** - creates 5 sample PDFs with diverse tables |
-| `test_rag_queries.py` | **Test suite** - 20+ test cases to validate RAG performance |
-| `docker-compose.yml` | Spin up MongoDB, Qdrant, and Mongo Express |
-| `example_usage.py` | Usage examples for document processing |
 | `check_setup.py` | Verify Python dependencies are installed |
-| `TESTING.md` | Detailed testing guide and troubleshooting |
+
+### Source Code (src/)
+
+| Module | Purpose |
+|--------|---------|
+| `src/ingestion/ingest.py` | PDF parsing, table/text extraction |
+| `src/ingestion/embedding.py` | Generate 384-dim vectors using sentence-transformers |
+| `src/database/db_connectors.py` | MongoDB and Qdrant connection management |
+| `src/query/query.py` | **RAG query engine** - hybrid search with local LLM |
+| `src/utils/view_qdrant_data.py` | **View & search** Qdrant data in readable format |
+
+### Tests (tests/)
+
+| Module | Purpose |
+|--------|---------|
+| `tests/generate_sample_pdfs.py` | **Generate test data** - creates 5 sample PDFs with diverse tables |
+| `tests/test_rag_queries.py` | **Test suite** - 20+ test cases to validate RAG performance |
+
+### Examples (examples/)
+
+| Module | Purpose |
+|--------|---------|
+| `examples/example_usage.py` | Usage examples for document processing |
+
+### Documentation
+
+| File | Purpose |
+|--------|---------|
+| `README.md` | Main documentation (this file) |
+| `SETUP.md` | Detailed setup instructions |
+| `TESTING.md` | Testing guide and troubleshooting |
+| `docker-compose.yml` | Database container configuration |
 
 ## Configuration
 

@@ -14,9 +14,9 @@ This script:
    - Embeds text and inserts vectors into Qdrant.
 """
 
-from ingest import DocumentProcessor
-from embedding import EmbeddingModel
-from db_connectors import MongoConnector, QdrantConnector
+from src.ingestion.ingest import DocumentProcessor
+from src.ingestion.embedding import EmbeddingModel
+from src.database.db_connectors import MongoConnector, QdrantConnector
 import os
 
 # --- Configuration ---
