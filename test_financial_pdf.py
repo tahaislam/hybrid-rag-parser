@@ -3,7 +3,7 @@
 Comprehensive test for financial_report.pdf table parsing
 """
 import os
-from src.ingestion.ingest import process_single_pdf
+from src.ingestion.ingest import DocumentProcessor
 
 print("="*80)
 print("FINANCIAL REPORT PDF - TABLE PARSING TEST")
@@ -25,7 +25,8 @@ print("\n" + "-"*80)
 print("PARSING PDF...")
 print("-"*80)
 
-tables, texts = process_single_pdf(pdf_path, strategy="auto")
+processor = DocumentProcessor()
+tables, texts = processor.process_pdf(pdf_path, strategy="auto")
 
 print(f"\n📊 Extraction Results:")
 print(f"   Tables: {len(tables)}")

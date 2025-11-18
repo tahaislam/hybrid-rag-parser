@@ -2,7 +2,7 @@
 """
 Debug script to check what was actually extracted from financial_report.pdf
 """
-from src.ingestion.ingest import process_single_pdf
+from src.ingestion.ingest import DocumentProcessor
 import os
 
 pdf_path = "data/financial_report.pdf"
@@ -15,7 +15,8 @@ if not os.path.exists(pdf_path):
 print(f"Processing {pdf_path}...")
 print("="*80)
 
-tables, texts = process_single_pdf(pdf_path)
+processor = DocumentProcessor()
+tables, texts = processor.process_pdf(pdf_path)
 
 print(f"\nFound {len(tables)} tables and {len(texts)} text chunks\n")
 
