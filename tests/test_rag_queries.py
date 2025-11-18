@@ -20,6 +20,7 @@ class RAGTester:
                  question: str,
                  expected_answer_contains: Optional[List[str]] = None,
                  test_name: str = "",
+                 match_mode: str = "all",
                  debug: bool = False) -> Tuple[bool, str]:
         """
         Run a single test query.
@@ -28,6 +29,7 @@ class RAGTester:
             question: The question to ask
             expected_answer_contains: List of strings that should appear in the answer
             test_name: Name/description of the test
+            match_mode: "all" (AND - all items must be present) or "any" (OR - at least one item must be present)
             debug: Whether to print debug info
 
         Returns:
@@ -48,11 +50,21 @@ class RAGTester:
         # Check if expected content is in the answer
         passed = True
         if expected_answer_contains:
-            for expected in expected_answer_contains:
-                if expected.lower() not in answer.lower():
+            if match_mode == "any":
+                # OR logic - at least one item must be present
+                passed = any(expected.lower() in answer.lower() for expected in expected_answer_contains)
+                if not passed:
+                    print(f"❌ FAILED: Expected to find at least one of: {expected_answer_contains}")
+            else:
+                # AND logic - all items must be present (default)
+                missing_items = []
+                for expected in expected_answer_contains:
+                    if expected.lower() not in answer.lower():
+                        missing_items.append(expected)
+
+                if missing_items:
                     passed = False
-                    print(f"❌ FAILED: Expected to find '{expected}' in answer")
-                    break
+                    print(f"❌ FAILED: Missing required items: {missing_items}")
 
         if passed and expected_answer_contains:
             print(f"✓ PASSED: Answer contains expected content")
@@ -88,21 +100,24 @@ class RAGTester:
         # Test 2: Cost calculation
         self.run_test(
             question="What is the total project budget?",
-            expected_answer_contains=["50,400", "50400"],
+            expected_answer_contains=["50,400", "50400", "$50,400", "$50400"],
+            match_mode="any",
             test_name="2. Table Total Lookup"
         )
 
         # Test 3: Timeline query
         self.run_test(
             question="When does the development phase end?",
-            expected_answer_contains=["2024-04-22", "April 22"],
+            expected_answer_contains=["2024-04-22", "April 22", "04-22"],
+            match_mode="any",
             test_name="3. Date Lookup from Timeline Table"
         )
 
         # Test 4: Financial report - revenue query
         self.run_test(
             question="What was the Q4 2023 revenue for Cloud Services?",
-            expected_answer_contains=["950,000", "950000"],
+            expected_answer_contains=["950,000", "950000", "$950,000", "$950000"],
+            match_mode="any",
             test_name="4. Specific Cell Lookup - Revenue Data"
         )
 
@@ -116,7 +131,8 @@ class RAGTester:
         # Test 6: Expense breakdown
         self.run_test(
             question="How much was spent on Marketing & Sales in Q4?",
-            expected_answer_contains=["380,000", "380000"],
+            expected_answer_contains=["380,000", "380000", "$380,000", "$380000"],
+            match_mode="any",
             test_name="6. Expense Category Lookup"
         )
 
@@ -137,7 +153,8 @@ class RAGTester:
         # Test 9: Dataset characteristics
         self.run_test(
             question="How many samples were in the training set?",
-            expected_answer_contains=["40,000", "40000"],
+            expected_answer_contains=["40,000", "40000", "40000", "40 000"],
+            match_mode="any",
             test_name="9. Dataset Information Lookup"
         )
 
@@ -158,21 +175,24 @@ class RAGTester:
         # Test 12: Performance benchmark
         self.run_test(
             question="What is the storage IOPS for the X500?",
-            expected_answer_contains=["2,500,000", "2500000"],
+            expected_answer_contains=["2,500,000", "2500000", "2.5 million"],
+            match_mode="any",
             test_name="12. Performance Metric Lookup"
         )
 
         # Test 13: Regional sales
         self.run_test(
             question="What were the total sales for Asia-Pacific in 2023?",
-            expected_answer_contains=["4.7M", "4.7"],
+            expected_answer_contains=["4.7M", "4.7", "$4.7"],
+            match_mode="any",
             test_name="13. Regional Total Lookup"
         )
 
         # Test 14: Quarterly sales
         self.run_test(
             question="What were North America Q4 sales?",
-            expected_answer_contains=["1.5M", "1.5"],
+            expected_answer_contains=["1.5M", "1.5", "$1.5"],
+            match_mode="any",
             test_name="14. Quarterly Regional Sales"
         )
 
