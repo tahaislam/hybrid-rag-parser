@@ -601,6 +601,44 @@ tables, texts = processor.process_pdf("file.pdf", strategy="fast")
 tables, texts = processor.process_pdf("file.pdf", strategy="hi_res")
 ```
 
+### ⚠️ Table Formatting Best Practices
+
+**IMPORTANT: Dark backgrounds can prevent table extraction**
+
+The `unstructured` library has difficulty extracting text from tables with dark backgrounds and light text. For best results:
+
+**✓ DO:**
+- Use light backgrounds (white, light grey, light blue)
+- Use dark text (black, dark grey)
+- Maintain good contrast
+
+**✗ AVOID:**
+- Dark backgrounds (dark blue, dark red, black)
+- White/light text on dark backgrounds
+- Low contrast combinations
+
+**Example - What Works:**
+```python
+# Good: Light background, dark text
+table.setStyle(TableStyle([
+    ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),  # ✓
+    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    ('GRID', (0, 0), (-1, -1), 1, colors.black)
+]))
+```
+
+**Example - What Fails:**
+```python
+# Bad: Dark background, white text
+table.setStyle(TableStyle([
+    ('BACKGROUND', (0, 0), (-1, 0), colors.darkblue),   # ✗
+    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  # ✗
+]))
+# Result: Empty table extraction
+```
+
+If your PDFs have dark-themed tables that aren't being extracted, regenerate them with lighter styling.
+
 ## Project Structure
 
 ```
@@ -883,8 +921,12 @@ pip install -r requirements.txt
 
 If no tables or text are extracted:
 1. Check that your PDF contains actual text (not just images)
-2. Try a different parsing strategy (`auto`, `fast`, or `hi_res`)
-3. Verify the PDF isn't password-protected or corrupted
+2. **Check for dark backgrounds in tables** - Dark backgrounds with light text prevent extraction (see Table Formatting Best Practices)
+3. Try a different parsing strategy (`auto`, `fast`, or `hi_res`)
+4. Verify the PDF isn't password-protected or corrupted
+5. Test with debug script: `python test_financial_pdf.py` to see what was extracted
+
+**Common cause:** Tables with dark backgrounds (darkblue, darkred) and white text return empty content. Solution: Regenerate PDFs with light backgrounds.
 
 ### Database Connection Errors
 
@@ -1016,6 +1058,49 @@ Built with:
 - [Ollama](https://ollama.com/) - Local LLM inference for RAG queries
 - [Docker](https://www.docker.com/) - Containerization
 - [Mongo Express](https://github.com/mongo-express/mongo-express) - MongoDB web interface
+
+## Database Maintenance
+
+### Clearing All Data
+
+To clear all ingested data (useful before re-ingesting with updated PDFs):
+
+```bash
+python clear_databases.py
+# Type 'yes' to confirm
+```
+
+This will:
+- Delete all documents from MongoDB
+- Delete and recreate the Qdrant collection
+- Provide a clean slate for re-ingestion
+
+**When to use:**
+- After fixing PDF table formatting issues
+- Before re-ingesting updated documents
+- To start fresh with new data
+
+**Complete reset workflow:**
+```bash
+# 1. Clear old data
+python clear_databases.py
+
+# 2. Regenerate PDFs (if needed)
+python generate_sample_pdfs.py
+
+# 3. Re-ingest
+python run_pipeline.py
+
+# 4. Test queries
+python test_rag_queries.py
+```
+
+**Alternative: Docker reset (nuclear option)**
+```bash
+# Completely wipe databases and restart containers
+docker-compose down -v
+docker-compose up -d
+```
 
 ## Docker Management
 
