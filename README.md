@@ -123,7 +123,7 @@ ollama run llama3:8b "Hello!"
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/tahaislam/hybrid-rag-parser.git
 cd hybrid-rag-parser
 ```
 
