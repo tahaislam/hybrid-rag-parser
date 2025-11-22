@@ -410,6 +410,275 @@ def create_sales_report_pdf():
     doc.build(story)
     print(f"✓ Created {filename}")
 
+def create_sample1_pdf():
+    """Create sample1.pdf - Service Agreement with billing table."""
+    filename = "data/sample1.pdf"
+    doc = SimpleDocTemplate(filename, pagesize=letter)
+    story = []
+    styles = getSampleStyleSheet()
+
+    # Title
+    title = Paragraph("<b>Service Agreement</b>", styles['Title'])
+    story.append(title)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Agreement details
+    details = Paragraph("""
+    <b>Agreement ID:</b> SA-2023-08-15-001<br/>
+    <b>Date:</b> August 15, 2023<br/><br/>
+    This Service Agreement ("Agreement") is made effective as of the Date by and between
+    <b>Client Co. LLC</b> (hereinafter "Client") and <b>Innovate Solutions Inc.</b> (hereinafter "Vendor").
+    """, styles['BodyText'])
+    story.append(details)
+    story.append(Spacer(1, 0.3*inch))
+
+    # Services section
+    services_header = Paragraph("<b>1. Services Provided</b>", styles['Heading2'])
+    story.append(services_header)
+    services_text = Paragraph("""
+    Vendor agrees to provide IT consulting services as detailed in Exhibit A. Services include,
+    but are not limited to, system architecture design, software development, and technical support.
+    """, styles['BodyText'])
+    story.append(services_text)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Term section
+    term_header = Paragraph("<b>2. Term and Termination</b>", styles['Heading2'])
+    story.append(term_header)
+    term_text = Paragraph("""
+    This Agreement shall commence on the Date and continue for a period of twelve (12) months.
+    Either party may terminate this Agreement with thirty (30) days written notice for any reason,
+    or immediately in the event of a material breach.
+    """, styles['BodyText'])
+    story.append(term_text)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Payment section
+    payment_header = Paragraph("<b>3. Payment Terms</b>", styles['Heading2'])
+    story.append(payment_header)
+    payment_text = Paragraph("""
+    Client shall pay Vendor according to the rates specified in the table below. All invoices are
+    due Net 30 days from the invoice date. Late payments may incur a 1.5% monthly interest fee.
+    """, styles['BodyText'])
+    story.append(payment_text)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Payment table
+    payment_data = [
+        ['Service Item', 'Rate (per hour)', 'Estimated Hours', 'Total (USD)'],
+        ['System Design', '$150', '40', '$6,000'],
+        ['Software Development', '$120', '160', '$19,200'],
+        ['Technical Support', '$100', '20', '$2,000'],
+        ['Total Estimated Project Cost', '', '', '$27,200']
+    ]
+
+    payment_table = Table(payment_data, colWidths=[2.2*inch, 1.5*inch, 1.5*inch, 1.3*inch])
+    payment_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    story.append(payment_table)
+    story.append(Spacer(1, 0.3*inch))
+
+    # Confidentiality section
+    conf_header = Paragraph("<b>4. Confidentiality</b>", styles['Heading2'])
+    story.append(conf_header)
+    conf_text = Paragraph("""
+    All information shared between Client and Vendor during the term of this Agreement shall be
+    considered confidential.
+    """, styles['BodyText'])
+    story.append(conf_text)
+
+    doc.build(story)
+    print(f"✓ Created {filename}")
+
+def create_sample2_pdf():
+    """Create sample2.pdf - Invoice."""
+    filename = "data/sample2.pdf"
+    doc = SimpleDocTemplate(filename, pagesize=letter)
+    story = []
+    styles = getSampleStyleSheet()
+
+    # Title
+    title = Paragraph("<b>INVOICE</b>", styles['Title'])
+    story.append(title)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Invoice details
+    invoice_details = Paragraph("""
+    <b>INVOICE NO:</b> INV-2023-09-01-005<br/>
+    <b>DATE:</b> September 1, 2023<br/>
+    <b>DUE DATE:</b> October 1, 2023
+    """, styles['BodyText'])
+    story.append(invoice_details)
+    story.append(Spacer(1, 0.3*inch))
+
+    # Bill to
+    billto = Paragraph("""
+    <b>BILL TO:</b><br/>
+    Client Co. LLC<br/>
+    123 Main Street<br/>
+    Anytown, USA 12345
+    """, styles['BodyText'])
+    story.append(billto)
+    story.append(Spacer(1, 0.2*inch))
+
+    # From
+    fromtext = Paragraph("""
+    <b>FROM:</b><br/>
+    Innovate Solutions Inc.<br/>
+    456 Tech Lane<br/>
+    Techville, USA 67890
+    """, styles['BodyText'])
+    story.append(fromtext)
+    story.append(Spacer(1, 0.3*inch))
+
+    # Services header
+    services_header = Paragraph("<b>Services Rendered</b>", styles['Heading2'])
+    story.append(services_header)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Services table
+    services_data = [
+        ['Description', 'Quantity', 'Unit Price', 'Amount (USD)'],
+        ['August IT Consulting', '160', '$120.00', '$19,200.00'],
+        ['Emergency Support', '5', '$150.00', '$750.00'],
+        ['Software License Fee', '1', '$500.00', '$500.00'],
+        ['Cloud Hosting', '1', '$300.00', '$300.00'],
+        ['', '', '', ''],
+        ['SUBTOTAL', '', '', '$20,750.00'],
+        ['TAX (8%)', '', '', '$1,660.00'],
+        ['TOTAL DUE', '', '', '$22,410.00']
+    ]
+
+    services_table = Table(services_data, colWidths=[2.5*inch, 1.2*inch, 1.3*inch, 1.5*inch])
+    services_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+        ('FONTNAME', (0, -3), (-1, -1), 'Helvetica-Bold'),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.lightblue),
+        ('GRID', (0, 0), (-1, -4), 1, colors.black),
+        ('GRID', (2, -3), (-1, -1), 1, colors.black)
+    ]))
+    story.append(services_table)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Payment instructions
+    payment_instr = Paragraph("""
+    <b>Payment Instructions:</b><br/>
+    Please remit payment to the above address or via bank transfer. Thank you for your business!
+    """, styles['BodyText'])
+    story.append(payment_instr)
+
+    doc.build(story)
+    print(f"✓ Created {filename}")
+
+def create_sample3_pdf():
+    """Create sample3.pdf - Employment Contract."""
+    filename = "data/sample3.pdf"
+    doc = SimpleDocTemplate(filename, pagesize=letter)
+    story = []
+    styles = getSampleStyleSheet()
+
+    # Title
+    title = Paragraph("<b>Employment Contract</b>", styles['Title'])
+    story.append(title)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Employee details
+    employee_details = Paragraph("""
+    <b>Employee Name:</b> Alice Johnson<br/>
+    <b>Employee ID:</b> EMP-007<br/>
+    <b>Date of Commencement:</b> October 1, 2023<br/><br/>
+    This Employment Contract ("Contract") is made between <b>Future Tech Corp</b> (the "Company") and
+    <b>Alice Johnson</b> (the "Employee").
+    """, styles['BodyText'])
+    story.append(employee_details)
+    story.append(Spacer(1, 0.3*inch))
+
+    # Position section
+    position_header = Paragraph("<b>1. Position and Duties</b>", styles['Heading2'])
+    story.append(position_header)
+    position_text = Paragraph("""
+    The Employee is hired for the position of <b>Senior Software Engineer</b>. The Employee shall
+    perform duties as outlined in the attached Job Description, as well as any other duties reasonably
+    assigned by the Company.
+    """, styles['BodyText'])
+    story.append(position_text)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Compensation section
+    comp_header = Paragraph("<b>2. Compensation</b>", styles['Heading2'])
+    story.append(comp_header)
+    comp_text = Paragraph("""
+    The Employee's annual salary will be <b>$140,000.00 USD</b>, payable bi-weekly. In addition,
+    the Employee will be eligible for a performance bonus of up to 10% of the annual salary, based
+    on company and individual performance.
+    """, styles['BodyText'])
+    story.append(comp_text)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Benefits section
+    benefits_header = Paragraph("<b>3. Benefits</b>", styles['Heading2'])
+    story.append(benefits_header)
+    benefits_text = Paragraph("""
+    The Employee will be eligible for the Company's standard benefits package, including health insurance,
+    dental insurance, paid time off, and a 401(k) matching program, commencing 30 days from the Date of
+    Commencement.
+    """, styles['BodyText'])
+    story.append(benefits_text)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Confidentiality section
+    confidentiality_header = Paragraph("<b>4. Confidentiality and Non-Compete</b>", styles['Heading2'])
+    story.append(confidentiality_header)
+    confidentiality_text = Paragraph("""
+    The Employee agrees to maintain strict confidentiality regarding all company proprietary information.
+    A non-compete clause applies for a period of one (1) year post-termination within a 50-mile radius of
+    the company's primary office.
+    """, styles['BodyText'])
+    story.append(confidentiality_text)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Leave entitlement section
+    leave_header = Paragraph("<b>5. Leave Entitlement</b>", styles['Heading2'])
+    story.append(leave_header)
+    story.append(Spacer(1, 0.2*inch))
+
+    # Leave table
+    leave_data = [
+        ['Leave Type', 'Annual Entitlement (Days)'],
+        ['Vacation', '15'],
+        ['Sick Leave', '10'],
+        ['Public Holidays', '8'],
+        ['Total Paid Days Off', '33']
+    ]
+
+    leave_table = Table(leave_data, colWidths=[3*inch, 2.5*inch])
+    leave_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    story.append(leave_table)
+
+    doc.build(story)
+    print(f"✓ Created {filename}")
+
 def main():
     """Generate all sample PDFs."""
     print("Generating sample PDF files...")
@@ -423,6 +692,9 @@ def main():
     create_research_data_pdf()
     create_product_specs_pdf()
     create_sales_report_pdf()
+    create_sample1_pdf()
+    create_sample2_pdf()
+    create_sample3_pdf()
 
     print()
     print("✓ All sample PDFs generated successfully!")

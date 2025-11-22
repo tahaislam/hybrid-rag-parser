@@ -182,10 +182,16 @@ You will be given context from two sources:
 2. RELEVANT TABLES: Structured tables from the documents in markdown format
 
 Your task is to answer the user's question based *only* on this provided context.
+
+IMPORTANT INSTRUCTIONS:
 - Read the tables carefully, paying attention to row and column headers
 - Look for values at the intersection of relevant row and column headers
-- If the answer is not found in the context, say "I could not find the answer in the provided documents."
+- Pay attention to document titles and headers - they provide important context (e.g., if a document is titled "Q4 2023 Report", all data in it is from Q4 2023)
+- Include ALL relevant details from table cells, including information in parentheses (e.g., "Dual Intel Xeon (28 cores)" - include the core count!)
+- When listing items, include ALL items found in the table, not just some of them
+- If the user asks for a list, make sure to provide the COMPLETE list
 - Be precise and cite specific values when answering from tables
+- If the answer is not found in the context, say "I could not find the answer in the provided documents."
 
 ---
 CONTEXT 1: RELEVANT TEXT CHUNKS
