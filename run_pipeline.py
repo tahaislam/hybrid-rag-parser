@@ -18,10 +18,50 @@ from src.ingestion.ingest import DocumentProcessor
 from src.ingestion.embedding import EmbeddingModel
 from src.database.db_connectors import MongoConnector, QdrantConnector
 import os
+import re
+from typing import List, Dict, Any
 
 # --- Configuration ---
 PDF_DIRECTORY = "data"
 QDRANT_COLLECTION = "document_chunks"
+
+def extract_table_text_for_vectorization(tables: List[Dict[str, Any]]) -> List[str]:
+    """
+    Extract searchable text from tables for vector indexing.
+
+    This function addresses a critical RAG limitation: when document content
+    is primarily in tables, vector search can't find the right document because
+    keywords only exist in structured data (MongoDB), not in text chunks (Qdrant).
+
+    Solution: Extract all text from tables and create searchable chunks that
+    include table content. This allows vector search to match queries like
+    "What was the F1 score of XGBoost?" to documents containing that data.
+
+    Args:
+        tables: List of table dictionaries with 'content' field (HTML)
+
+    Returns:
+        List of text strings suitable for vector embedding
+    """
+    table_texts = []
+
+    for table in tables:
+        content = table.get('content', '')
+        if not content or not isinstance(content, str):
+            continue
+
+        # Extract all text from HTML table (remove tags, keep content)
+        # This captures column headers, row headers, and cell values
+        text_content = re.sub(r'<[^>]+>', ' ', content)  # Remove HTML tags
+        text_content = re.sub(r'\s+', ' ', text_content)  # Normalize whitespace
+        text_content = text_content.strip()
+
+        if len(text_content) > 10:  # Only add non-trivial content
+            # Create a descriptive summary that includes table structure info
+            table_summary = f"Table data: {text_content}"
+            table_texts.append(table_summary)
+
+    return table_texts
 
 def main():
     print("🚀 Starting Hybrid RAG Ingestion Pipeline...")
@@ -65,6 +105,14 @@ def main():
             # --- Phase 2a: Store Tables (NoSQL) ---
             if tables:
                 mongo.insert_tables(tables, source_filename=pdf_file)
+
+                # ENHANCEMENT: Extract table content for vector search
+                # This solves the problem where documents with primarily table data
+                # can't be found by vector search (e.g., "What was the F1 score of XGBoost?")
+                print(f"  → Extracting searchable text from {len(tables)} tables...")
+                table_texts = extract_table_text_for_vectorization(tables)
+                texts.extend(table_texts)
+                print(f"  → Added {len(table_texts)} table summary chunks for vector search")
             else:
                 print("No tables found in this document.")
 
