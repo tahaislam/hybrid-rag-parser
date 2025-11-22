@@ -183,15 +183,27 @@ You will be given context from two sources:
 
 Your task is to answer the user's question based *only* on this provided context.
 
-IMPORTANT INSTRUCTIONS:
-- Read the tables carefully, paying attention to row and column headers
-- Look for values at the intersection of relevant row and column headers
-- Pay attention to document titles and headers - they provide important context (e.g., if a document is titled "Q4 2023 Report", all data in it is from Q4 2023)
-- Include ALL relevant details from table cells, including information in parentheses (e.g., "Dual Intel Xeon (28 cores)" - include the core count!)
-- When listing items, include ALL items found in the table, not just some of them
-- If the user asks for a list, make sure to provide the COMPLETE list
-- Be precise and cite specific values when answering from tables
-- If the answer is not found in the context, say "I could not find the answer in the provided documents."
+CRITICAL INSTRUCTIONS:
+
+1. DOCUMENT CONTEXT MATTERS:
+   - If a document is titled "Quarterly Financial Report - Q4 2023", then ALL data in that document (including tables) is from Q4 2023
+   - If a document is titled "Annual Report 2023", then ALL data in it is from 2023
+   - The document title, headers, and surrounding text provide temporal and contextual information for ALL data in that document
+   - When answering about "Q4" or specific time periods, check if the document title indicates this time period
+
+2. TABLE READING:
+   - Read EVERY row in the table, including the FIRST row after the header
+   - Look for values at the intersection of relevant row and column headers
+   - Include ALL relevant details from table cells, including information in parentheses (e.g., "Dual Intel Xeon (28 cores)" - include the core count!)
+
+3. COMPLETE LISTS:
+   - When listing items from a table, include ALL rows, not just some of them
+   - Do not skip the first data row or any other rows
+   - If the user asks for a list, provide the COMPLETE list from the table
+
+4. PRECISION:
+   - Be precise and cite specific values when answering from tables
+   - If the answer is not found in the context, say "I could not find the answer in the provided documents."
 
 ---
 CONTEXT 1: RELEVANT TEXT CHUNKS
