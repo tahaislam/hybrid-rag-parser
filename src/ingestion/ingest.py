@@ -30,6 +30,8 @@ class DocumentProcessor:
     def __init__(self):
         """Initialize the document processor."""
         self.supported_text_types = (NarrativeText, Title, Text, ListItem)
+        # Track table locations to filter out duplicate table text
+        self.table_locations = []
 
     def process_pdf(
         self,
@@ -100,18 +102,28 @@ class DocumentProcessor:
         # Initialize storage lists
         tables_to_store = []
         text_to_embed = []
+        self.table_locations = []  # Reset for each PDF
 
-        # Separate tables from narrative text
+        # First pass: identify and extract all tables
         for idx, element in enumerate(elements):
             if isinstance(element, Table):
                 # Extract table as structured data
                 table_data = self._extract_table(element, idx, extract_tables_as)
                 tables_to_store.append(table_data)
 
-            elif isinstance(element, self.supported_text_types):
+                # Track table location (page number and approximate position)
+                metadata = element.metadata.to_dict() if hasattr(element, 'metadata') else {}
+                self.table_locations.append({
+                    'page': metadata.get('page_number'),
+                    'index': idx
+                })
+
+        # Second pass: extract text while filtering out table-like content
+        for idx, element in enumerate(elements):
+            if isinstance(element, self.supported_text_types):
                 # Extract narrative text for embedding
                 text_content = element.text.strip()
-                if text_content:  # Only add non-empty text
+                if text_content and not self._is_table_like_text(text_content, element):
                     text_to_embed.append(text_content)
 
         # Print summary
@@ -162,6 +174,62 @@ class DocumentProcessor:
         }
 
         return table_record
+
+    def _is_table_like_text(self, text_content: str, element: Any) -> bool:
+        """
+        Detect if text content appears to be table data that should be filtered out.
+
+        Args:
+            text_content: The text content to check
+            element: The element object (for metadata access)
+
+        Returns:
+            True if the text appears to be table data, False otherwise
+        """
+        # Check 1: Does it start with common table indicators?
+        table_indicators = [
+            'Table data:',
+            'table data:',
+            '| ',  # Markdown table
+            '<table',  # HTML table remnant
+        ]
+        if any(text_content.startswith(indicator) for indicator in table_indicators):
+            return True
+
+        # Check 2: Does it have table-like patterns?
+        # Multiple consecutive date patterns (YYYY-MM-DD)
+        import re
+        date_pattern = r'\d{4}-\d{2}-\d{2}'
+        date_matches = re.findall(date_pattern, text_content)
+        if len(date_matches) >= 3:  # Likely a table row or column of dates
+            return True
+
+        # Check 3: High density of tab characters or multiple consecutive spaces (table formatting)
+        if text_content.count('\t') >= 3:
+            return True
+
+        # Check 4: Pattern of "word number word number" repeating (table cells)
+        # Example: "Design 2024-01-30 2024-02-26 Development 2024-02-27"
+        words = text_content.split()
+        if len(words) >= 8:  # Need enough words to check pattern
+            # Count transitions between word-like and number/date-like tokens
+            transitions = 0
+            for i in range(len(words) - 1):
+                curr_is_num = bool(re.match(r'[\d$,.-]+', words[i]))
+                next_is_num = bool(re.match(r'[\d$,.-]+', words[i + 1]))
+                if curr_is_num != next_is_num:
+                    transitions += 1
+            # High transition count suggests alternating text/numbers (table data)
+            if transitions >= 6:
+                return True
+
+        # Check 5: Contains multiple currency amounts (table of financial data)
+        currency_pattern = r'\$[\d,]+\.?\d*'
+        currency_matches = re.findall(currency_pattern, text_content)
+        if len(currency_matches) >= 3:
+            return True
+
+        return False
 
     def _print_summary(
         self,

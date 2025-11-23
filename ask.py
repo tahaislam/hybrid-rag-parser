@@ -8,7 +8,7 @@ python ask.py "Your question here" --debug  # Show formatted context
 """
 
 import sys
-from query import QueryEngine
+from src.query.query import QueryEngine
 
 def main():
     if len(sys.argv) < 2:

@@ -10,7 +10,7 @@ Note: The installation may take several minutes due to heavy dependencies
 (PyTorch, layout detection models, etc.)
 """
 
-from ingest import DocumentProcessor, process_single_pdf, process_directory
+from src.ingestion.ingest import DocumentProcessor, process_single_pdf, process_directory
 
 
 def example_1_single_file():
