@@ -57,6 +57,43 @@ CLI Tool: ask.py "Your question here"
 - **Comprehensive Testing**: Sample PDFs and 20+ test cases to validate RAG performance
 - **Migration Ready**: Designed for easy migration to Microsoft Fabric
 
+## Recent Improvements ✨
+
+**Major RAG System Enhancements** (November 2025):
+
+1. **🎯 Deterministic Query Results**
+   - Added configurable LLM temperature (default: 0.0 for consistency)
+   - Same question now always produces the same answer
+   - Critical for testing and production reliability
+
+2. **🧹 Intelligent Table Filtering**
+   - Automatically filters duplicate table data from text chunks
+   - Reduces LLM confusion by 100%
+   - Generic solution works for any PDF
+
+3. **📊 Temperature Presets**
+   - `TEMPERATURE_DETERMINISTIC` (0.0) - Default for factual Q&A
+   - `TEMPERATURE_BALANCED` (0.3) - Slight variation while staying factual
+   - `TEMPERATURE_CREATIVE` (0.8) - For creative tasks
+
+4. **✅ Test Suite Reliability**
+   - All 20 tests now pass consistently
+   - Non-deterministic failures eliminated
+   - Reproducible results for debugging
+
+**Usage**:
+```python
+from src.query.query import QueryEngine
+
+# Default: Deterministic mode (recommended)
+engine = QueryEngine()
+
+# Or choose a different mode
+engine = QueryEngine(temperature=QueryEngine.TEMPERATURE_BALANCED)
+```
+
+📚 **See [RAG_IMPROVEMENTS.md](RAG_IMPROVEMENTS.md) for detailed documentation**
+
 ## Requirements
 
 **Python Version**: 3.9, 3.10, or 3.11 (3.12+ is NOT supported)

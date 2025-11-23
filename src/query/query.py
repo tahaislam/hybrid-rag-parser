@@ -13,18 +13,41 @@ from html.parser import HTMLParser
 import re
 
 class QueryEngine:
-    def __init__(self):
+    # Temperature presets for different use cases
+    TEMPERATURE_DETERMINISTIC = 0.0  # Factual Q&A, testing, production consistency
+    TEMPERATURE_BALANCED = 0.3       # Slight variation while staying factual
+    TEMPERATURE_CREATIVE = 0.8       # Creative writing, brainstorming
+
+    def __init__(self, temperature: float = None):
+        """
+        Initialize the Query Engine.
+
+        Args:
+            temperature: LLM temperature (0.0-1.0). Controls randomness in responses.
+                        - None (default): Uses TEMPERATURE_DETERMINISTIC (0.0)
+                        - 0.0: Deterministic - same input always gives same output
+                        - 0.3: Balanced - slight variation while staying factual
+                        - 0.8: Creative - diverse outputs for creative tasks
+                        You can also use the class constants:
+                        - QueryEngine.TEMPERATURE_DETERMINISTIC
+                        - QueryEngine.TEMPERATURE_BALANCED
+                        - QueryEngine.TEMPERATURE_CREATIVE
+        """
         print("Initializing Query Engine...")
         self.mongo = MongoConnector()
         self.qdrant = QdrantConnector(collection_name="document_chunks")
         self.embedder = EmbeddingModel()
-        
+
+        # Set temperature (default to deterministic for consistent results)
+        self.temperature = temperature if temperature is not None else self.TEMPERATURE_DETERMINISTIC
+        print(f"LLM Temperature: {self.temperature} ({'Deterministic' if self.temperature == 0.0 else 'Balanced' if self.temperature <= 0.5 else 'Creative'})")
+
         # Connect to local Ollama server
         try:
             self.llm_client = Client(host='http://localhost:11434')
             self.llm_model = 'llama3:8b' # Or 'mistral', etc.
             # Check if the server is running
-            self.llm_client.list() 
+            self.llm_client.list()
             print(f"Connected to Ollama. Using model: {self.llm_model}")
         except Exception as e:
             print("="*50)
@@ -182,10 +205,36 @@ You will be given context from two sources:
 2. RELEVANT TABLES: Structured tables from the documents in markdown format
 
 Your task is to answer the user's question based *only* on this provided context.
-- Read the tables carefully, paying attention to row and column headers
-- Look for values at the intersection of relevant row and column headers
-- If the answer is not found in the context, say "I could not find the answer in the provided documents."
-- Be precise and cite specific values when answering from tables
+
+CRITICAL INSTRUCTIONS:
+
+1. DOCUMENT CONTEXT MATTERS:
+   - If a document is titled "Quarterly Financial Report - Q4 2023", then ALL data in that document (including tables) is from Q4 2023
+   - If a document is titled "Annual Report 2023", then ALL data in it is from 2023
+   - The document title, headers, and surrounding text provide temporal and contextual information for ALL data in that document
+   - When answering about "Q4" or specific time periods, check if the document title indicates this time period
+
+2. TABLE READING - READ EVERY SINGLE ROW:
+   - Read EVERY row in the table from top to bottom, including the FIRST row after the header
+   - When a table has a header row (like "| Phase | Duration | Start Date | End Date |"), the data rows come IMMEDIATELY after
+   - The FIRST data row is just as important as any other row - DO NOT SKIP IT
+   - Example: If you see "| Phase | ... |" followed by "| Requirements | ... |", then "Requirements" is the FIRST phase
+   - Count the rows mentally: 1st row, 2nd row, 3rd row, etc. Include ALL of them
+
+3. LISTING VALUES FROM A COLUMN:
+   - When asked to "list all X" where X is a column name, extract EVERY value from that column
+   - Start from the first data row and go to the last data row
+   - Do not skip any rows in between
+   - Example: If asked "list all phases" and the Phase column has 5 rows, list all 5 values
+
+4. COMPLETE LISTS:
+   - When listing items from a table, include ALL rows, not just some of them
+   - Do not skip the first data row or any other rows
+   - If the user asks for a list, provide the COMPLETE list from the table
+
+5. PRECISION:
+   - Be precise and cite specific values when answering from tables
+   - If the answer is not found in the context, say "I could not find the answer in the provided documents."
 
 ---
 CONTEXT 1: RELEVANT TEXT CHUNKS
@@ -214,7 +263,11 @@ YOUR ANSWER:
                 messages=[
                     {"role": "system", "content": "You are a helpful document assistant that only uses provided context."},
                     {"role": "user", "content": prompt}
-                ]
+                ],
+                options={
+                    "temperature": self.temperature,  # Use configured temperature
+                    "top_p": 1.0                      # Disable nucleus sampling for consistency
+                }
             )
             
             answer = response['message']['content']
@@ -223,3 +276,46 @@ YOUR ANSWER:
         except Exception as e:
             print(f"Error calling Ollama: {e}")
             return "There was an error generating the answer."
+
+
+# Usage Examples
+if __name__ == "__main__":
+    """
+    Example usage demonstrating different temperature settings.
+    """
+    print("="*80)
+    print("QueryEngine Temperature Examples")
+    print("="*80)
+
+    # Example 1: Deterministic mode (default) - for testing and production
+    print("\n1. DETERMINISTIC MODE (temperature=0.0)")
+    print("   Use for: Testing, production queries, consistent results")
+    print("-"*80)
+    engine_deterministic = QueryEngine()  # Default is deterministic
+    # Or explicitly: engine = QueryEngine(temperature=QueryEngine.TEMPERATURE_DETERMINISTIC)
+
+    # Example 2: Balanced mode - for general use with slight variation
+    print("\n2. BALANCED MODE (temperature=0.3)")
+    print("   Use for: General queries with slight variation")
+    print("-"*80)
+    engine_balanced = QueryEngine(temperature=QueryEngine.TEMPERATURE_BALANCED)
+
+    # Example 3: Creative mode - for brainstorming and diverse outputs
+    print("\n3. CREATIVE MODE (temperature=0.8)")
+    print("   Use for: Creative writing, brainstorming, diverse perspectives")
+    print("-"*80)
+    engine_creative = QueryEngine(temperature=QueryEngine.TEMPERATURE_CREATIVE)
+
+    # Example 4: Custom temperature
+    print("\n4. CUSTOM TEMPERATURE")
+    print("   Use any value between 0.0 and 1.0")
+    print("-"*80)
+    engine_custom = QueryEngine(temperature=0.5)
+
+    print("\n" + "="*80)
+    print("Temperature Guide:")
+    print("  0.0       = Deterministic (same input → same output)")
+    print("  0.1-0.3   = Minimal variation (factual with slight diversity)")
+    print("  0.4-0.6   = Moderate variation (balanced creativity)")
+    print("  0.7-1.0   = High variation (creative, diverse outputs)")
+    print("="*80)
