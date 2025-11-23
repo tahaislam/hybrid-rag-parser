@@ -60,3 +60,8 @@ sentence-transformers  # For generating embeddings
 
 # LLM interaction
 ollama
+
+# =============================================================================
+# DEV TOOLS (Optional)
+# =============================================================================
+reportlab  # For generating sample PDFs during testing

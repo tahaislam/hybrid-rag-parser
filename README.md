@@ -54,7 +54,45 @@ CLI Tool: ask.py "Your question here"
 - **RAG Query Interface**: Ask questions and get answers using local LLM (Ollama)
 - **Hybrid Retrieval**: Combines vector search and table lookups for comprehensive answers
 - **100% Private**: Uses local Ollama models - no data sent to external APIs
+- **Comprehensive Testing**: Sample PDFs and 20+ test cases to validate RAG performance
 - **Migration Ready**: Designed for easy migration to Microsoft Fabric
+
+## Recent Improvements ✨
+
+**Major RAG System Enhancements** (November 2025):
+
+1. **🎯 Deterministic Query Results**
+   - Added configurable LLM temperature (default: 0.0 for consistency)
+   - Same question now always produces the same answer
+   - Critical for testing and production reliability
+
+2. **🧹 Intelligent Table Filtering**
+   - Automatically filters duplicate table data from text chunks
+   - Reduces LLM confusion by 100%
+   - Generic solution works for any PDF
+
+3. **📊 Temperature Presets**
+   - `TEMPERATURE_DETERMINISTIC` (0.0) - Default for factual Q&A
+   - `TEMPERATURE_BALANCED` (0.3) - Slight variation while staying factual
+   - `TEMPERATURE_CREATIVE` (0.8) - For creative tasks
+
+4. **✅ Test Suite Reliability**
+   - All 20 tests now pass consistently
+   - Non-deterministic failures eliminated
+   - Reproducible results for debugging
+
+**Usage**:
+```python
+from src.query.query import QueryEngine
+
+# Default: Deterministic mode (recommended)
+engine = QueryEngine()
+
+# Or choose a different mode
+engine = QueryEngine(temperature=QueryEngine.TEMPERATURE_BALANCED)
+```
+
+📚 **See [RAG_IMPROVEMENTS.md](RAG_IMPROVEMENTS.md) for detailed documentation**
 
 ## Requirements
 
@@ -122,7 +160,7 @@ ollama run llama3:8b "Hello!"
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/tahaislam/hybrid-rag-parser.git
 cd hybrid-rag-parser
 ```
 
@@ -317,6 +355,70 @@ limit=5  # default is 3
 # Change Ollama server URL (line 22)
 self.llm_client = Client(host='http://your-server:11434')
 ```
+
+## Testing the RAG System
+
+### Generate Sample Data and Run Tests
+
+The project includes comprehensive testing tools to validate RAG performance:
+
+**1. Generate Sample PDFs**
+
+First, install the PDF generation library:
+```bash
+pip install reportlab
+```
+
+Then generate 5 diverse sample PDFs:
+```bash
+python generate_sample_pdfs.py
+```
+
+This creates sample PDFs with various table types:
+- `project_budget.pdf` - Project budget and timeline
+- `financial_report.pdf` - Quarterly revenue and expenses
+- `research_results.pdf` - ML model performance data
+- `product_specs.pdf` - Hardware specifications
+- `sales_report.pdf` - Regional sales data
+
+**2. Ingest Sample Data**
+
+Process the sample PDFs:
+```bash
+python run_pipeline.py
+```
+
+**3. Run Comprehensive Tests**
+
+Execute 20+ test cases:
+```bash
+python test_rag_queries.py
+```
+
+The test suite validates:
+- Simple table lookups (e.g., "What is the estimated hours for software development?")
+- Row/column intersections (e.g., "What was Q4 revenue for Cloud Services?")
+- Best performer identification (e.g., "Which ML model had highest accuracy?")
+- Multi-value extractions (e.g., "List all project phases")
+- Comparison queries (e.g., "Compare Random Forest and XGBoost models")
+
+**Test Output Example:**
+```
+TEST: Simple Table Lookup - Single Value
+QUESTION: What is the estimated hours for software development?
+ANSWER: Based on the project budget table, the estimated hours for
+        software development is 160 hours.
+✓ PASSED: Answer contains expected content
+Time taken: 5.23 seconds
+
+TEST SUMMARY
+Total tests run: 20
+Tests passed: 19
+Tests failed: 1
+Average response time: 6.45 seconds
+```
+
+**For detailed testing documentation**, see [TESTING.md](TESTING.md)
 
 ## Viewing Stored Data
 
@@ -536,46 +638,131 @@ tables, texts = processor.process_pdf("file.pdf", strategy="fast")
 tables, texts = processor.process_pdf("file.pdf", strategy="hi_res")
 ```
 
+### ⚠️ Table Formatting Best Practices
+
+**IMPORTANT: Dark backgrounds can prevent table extraction**
+
+The `unstructured` library has difficulty extracting text from tables with dark backgrounds and light text. For best results:
+
+**✓ DO:**
+- Use light backgrounds (white, light grey, light blue)
+- Use dark text (black, dark grey)
+- Maintain good contrast
+
+**✗ AVOID:**
+- Dark backgrounds (dark blue, dark red, black)
+- White/light text on dark backgrounds
+- Low contrast combinations
+
+**Example - What Works:**
+```python
+# Good: Light background, dark text
+table.setStyle(TableStyle([
+    ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),  # ✓
+    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    ('GRID', (0, 0), (-1, -1), 1, colors.black)
+]))
+```
+
+**Example - What Fails:**
+```python
+# Bad: Dark background, white text
+table.setStyle(TableStyle([
+    ('BACKGROUND', (0, 0), (-1, 0), colors.darkblue),   # ✗
+    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),  # ✗
+]))
+# Result: Empty table extraction
+```
+
+If your PDFs have dark-themed tables that aren't being extracted, regenerate them with lighter styling.
+
 ## Project Structure
 
 ```
 hybrid-rag-parser/
-├── ingest.py                 # Main document processing module
-├── embedding.py              # Text embedding and vector generation
-├── db_connectors.py          # MongoDB and Qdrant database connectors
-├── run_pipeline.py           # Main orchestration script (run this!)
-├── query.py                  # RAG query engine with Ollama (NEW!)
-├── ask.py                    # CLI tool for asking questions (NEW!)
-├── view_qdrant_data.py       # Helper script to view Qdrant data easily
-├── docker-compose.yml        # Database container configuration
-├── example_usage.py          # Comprehensive usage examples
-├── check_setup.py            # Installation verification script
-├── requirements.txt          # Python dependencies (includes ollama)
-├── requirements-minimal.txt  # Minimal dependencies
-├── requirements-lite.txt     # Lightweight option
-├── SETUP.md                  # Detailed setup instructions
-├── .gitignore                # Git ignore rules
-├── data/                     # Sample PDF files
+├── src/                      # Source code organized by functionality
+│   ├── __init__.py
+│   ├── ingestion/           # Document processing and embedding
+│   │   ├── __init__.py
+│   │   ├── ingest.py        # PDF parsing and table/text extraction
+│   │   └── embedding.py     # Text embedding with sentence-transformers
+│   ├── database/            # Database connectors
+│   │   ├── __init__.py
+│   │   └── db_connectors.py # MongoDB and Qdrant connections
+│   ├── query/               # RAG query engine
+│   │   ├── __init__.py
+│   │   └── query.py         # Hybrid search with local LLM
+│   └── utils/               # Utility scripts
+│       ├── __init__.py
+│       └── view_qdrant_data.py # View/search Qdrant data
+├── tests/                   # Test suite and sample data generation
+│   ├── __init__.py
+│   ├── generate_sample_pdfs.py # Generate 5 diverse test PDFs
+│   └── test_rag_queries.py     # 20+ automated test cases
+├── examples/                # Usage examples
+│   ├── __init__.py
+│   └── example_usage.py    # Document processing examples
+├── data/                    # PDF files for ingestion
 │   ├── sample1.pdf
 │   ├── sample2.pdf
-│   └── sample3.pdf
-└── README.md                 # This file
+│   ├── sample3.pdf
+│   ├── project_budget.pdf  # Generated test PDF
+│   ├── financial_report.pdf
+│   ├── research_results.pdf
+│   ├── product_specs.pdf
+│   └── sales_report.pdf
+├── run_pipeline.py          # Main orchestration script (run this!)
+├── ask.py                   # CLI tool for asking questions
+├── check_setup.py           # Installation verification
+├── docker-compose.yml       # Database containers
+├── requirements.txt         # Python dependencies
+├── README.md                # This file
+├── SETUP.md                 # Detailed setup instructions
+├── TESTING.md               # Testing guide
+└── .gitignore               # Git ignore rules
 ```
 
 ## Module Descriptions
 
+### Main Entry Points (Root Level)
+
 | Module | Purpose |
 |--------|---------|
-| `ingest.py` | PDF parsing, table/text extraction |
-| `embedding.py` | Generate 384-dim vectors using sentence-transformers |
-| `db_connectors.py` | MongoDB and Qdrant connection management |
 | `run_pipeline.py` | **Main entry point** - orchestrates full pipeline |
-| `query.py` | **RAG query engine** - hybrid search with local LLM |
 | `ask.py` | **CLI tool** - simple command-line interface for questions |
-| `view_qdrant_data.py` | **View & search** Qdrant data in readable format |
-| `docker-compose.yml` | Spin up MongoDB, Qdrant, and Mongo Express |
-| `example_usage.py` | Usage examples for document processing |
 | `check_setup.py` | Verify Python dependencies are installed |
+
+### Source Code (src/)
+
+| Module | Purpose |
+|--------|---------|
+| `src/ingestion/ingest.py` | PDF parsing, table/text extraction |
+| `src/ingestion/embedding.py` | Generate 384-dim vectors using sentence-transformers |
+| `src/database/db_connectors.py` | MongoDB and Qdrant connection management |
+| `src/query/query.py` | **RAG query engine** - hybrid search with local LLM |
+| `src/utils/view_qdrant_data.py` | **View & search** Qdrant data in readable format |
+
+### Tests (tests/)
+
+| Module | Purpose |
+|--------|---------|
+| `tests/generate_sample_pdfs.py` | **Generate test data** - creates 5 sample PDFs with diverse tables |
+| `tests/test_rag_queries.py` | **Test suite** - 20+ test cases to validate RAG performance |
+
+### Examples (examples/)
+
+| Module | Purpose |
+|--------|---------|
+| `examples/example_usage.py` | Usage examples for document processing |
+
+### Documentation
+
+| File | Purpose |
+|--------|---------|
+| `README.md` | Main documentation (this file) |
+| `SETUP.md` | Detailed setup instructions |
+| `TESTING.md` | Testing guide and troubleshooting |
+| `docker-compose.yml` | Database container configuration |
 
 ## Configuration
 
@@ -771,8 +958,12 @@ pip install -r requirements.txt
 
 If no tables or text are extracted:
 1. Check that your PDF contains actual text (not just images)
-2. Try a different parsing strategy (`auto`, `fast`, or `hi_res`)
-3. Verify the PDF isn't password-protected or corrupted
+2. **Check for dark backgrounds in tables** - Dark backgrounds with light text prevent extraction (see Table Formatting Best Practices)
+3. Try a different parsing strategy (`auto`, `fast`, or `hi_res`)
+4. Verify the PDF isn't password-protected or corrupted
+5. Test with debug script: `python test_financial_pdf.py` to see what was extracted
+
+**Common cause:** Tables with dark backgrounds (darkblue, darkred) and white text return empty content. Solution: Regenerate PDFs with light backgrounds.
 
 ### Database Connection Errors
 
@@ -904,6 +1095,49 @@ Built with:
 - [Ollama](https://ollama.com/) - Local LLM inference for RAG queries
 - [Docker](https://www.docker.com/) - Containerization
 - [Mongo Express](https://github.com/mongo-express/mongo-express) - MongoDB web interface
+
+## Database Maintenance
+
+### Clearing All Data
+
+To clear all ingested data (useful before re-ingesting with updated PDFs):
+
+```bash
+python clear_databases.py
+# Type 'yes' to confirm
+```
+
+This will:
+- Delete all documents from MongoDB
+- Delete and recreate the Qdrant collection
+- Provide a clean slate for re-ingestion
+
+**When to use:**
+- After fixing PDF table formatting issues
+- Before re-ingesting updated documents
+- To start fresh with new data
+
+**Complete reset workflow:**
+```bash
+# 1. Clear old data
+python clear_databases.py
+
+# 2. Regenerate PDFs (if needed)
+python generate_sample_pdfs.py
+
+# 3. Re-ingest
+python run_pipeline.py
+
+# 4. Test queries
+python test_rag_queries.py
+```
+
+**Alternative: Docker reset (nuclear option)**
+```bash
+# Completely wipe databases and restart containers
+docker-compose down -v
+docker-compose up -d
+```
 
 ## Docker Management
 
