@@ -13,18 +13,41 @@ from html.parser import HTMLParser
 import re
 
 class QueryEngine:
-    def __init__(self):
+    # Temperature presets for different use cases
+    TEMPERATURE_DETERMINISTIC = 0.0  # Factual Q&A, testing, production consistency
+    TEMPERATURE_BALANCED = 0.3       # Slight variation while staying factual
+    TEMPERATURE_CREATIVE = 0.8       # Creative writing, brainstorming
+
+    def __init__(self, temperature: float = None):
+        """
+        Initialize the Query Engine.
+
+        Args:
+            temperature: LLM temperature (0.0-1.0). Controls randomness in responses.
+                        - None (default): Uses TEMPERATURE_DETERMINISTIC (0.0)
+                        - 0.0: Deterministic - same input always gives same output
+                        - 0.3: Balanced - slight variation while staying factual
+                        - 0.8: Creative - diverse outputs for creative tasks
+                        You can also use the class constants:
+                        - QueryEngine.TEMPERATURE_DETERMINISTIC
+                        - QueryEngine.TEMPERATURE_BALANCED
+                        - QueryEngine.TEMPERATURE_CREATIVE
+        """
         print("Initializing Query Engine...")
         self.mongo = MongoConnector()
         self.qdrant = QdrantConnector(collection_name="document_chunks")
         self.embedder = EmbeddingModel()
-        
+
+        # Set temperature (default to deterministic for consistent results)
+        self.temperature = temperature if temperature is not None else self.TEMPERATURE_DETERMINISTIC
+        print(f"LLM Temperature: {self.temperature} ({'Deterministic' if self.temperature == 0.0 else 'Balanced' if self.temperature <= 0.5 else 'Creative'})")
+
         # Connect to local Ollama server
         try:
             self.llm_client = Client(host='http://localhost:11434')
             self.llm_model = 'llama3:8b' # Or 'mistral', etc.
             # Check if the server is running
-            self.llm_client.list() 
+            self.llm_client.list()
             print(f"Connected to Ollama. Using model: {self.llm_model}")
         except Exception as e:
             print("="*50)
@@ -242,8 +265,8 @@ YOUR ANSWER:
                     {"role": "user", "content": prompt}
                 ],
                 options={
-                    "temperature": 0.0,  # Set to 0 for deterministic, reproducible results
-                    "top_p": 1.0         # Disable nucleus sampling for consistency
+                    "temperature": self.temperature,  # Use configured temperature
+                    "top_p": 1.0                      # Disable nucleus sampling for consistency
                 }
             )
             
@@ -253,3 +276,46 @@ YOUR ANSWER:
         except Exception as e:
             print(f"Error calling Ollama: {e}")
             return "There was an error generating the answer."
+
+
+# Usage Examples
+if __name__ == "__main__":
+    """
+    Example usage demonstrating different temperature settings.
+    """
+    print("="*80)
+    print("QueryEngine Temperature Examples")
+    print("="*80)
+
+    # Example 1: Deterministic mode (default) - for testing and production
+    print("\n1. DETERMINISTIC MODE (temperature=0.0)")
+    print("   Use for: Testing, production queries, consistent results")
+    print("-"*80)
+    engine_deterministic = QueryEngine()  # Default is deterministic
+    # Or explicitly: engine = QueryEngine(temperature=QueryEngine.TEMPERATURE_DETERMINISTIC)
+
+    # Example 2: Balanced mode - for general use with slight variation
+    print("\n2. BALANCED MODE (temperature=0.3)")
+    print("   Use for: General queries with slight variation")
+    print("-"*80)
+    engine_balanced = QueryEngine(temperature=QueryEngine.TEMPERATURE_BALANCED)
+
+    # Example 3: Creative mode - for brainstorming and diverse outputs
+    print("\n3. CREATIVE MODE (temperature=0.8)")
+    print("   Use for: Creative writing, brainstorming, diverse perspectives")
+    print("-"*80)
+    engine_creative = QueryEngine(temperature=QueryEngine.TEMPERATURE_CREATIVE)
+
+    # Example 4: Custom temperature
+    print("\n4. CUSTOM TEMPERATURE")
+    print("   Use any value between 0.0 and 1.0")
+    print("-"*80)
+    engine_custom = QueryEngine(temperature=0.5)
+
+    print("\n" + "="*80)
+    print("Temperature Guide:")
+    print("  0.0       = Deterministic (same input → same output)")
+    print("  0.1-0.3   = Minimal variation (factual with slight diversity)")
+    print("  0.4-0.6   = Moderate variation (balanced creativity)")
+    print("  0.7-1.0   = High variation (creative, diverse outputs)")
+    print("="*80)
