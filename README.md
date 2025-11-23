@@ -1,5 +1,8 @@
 # Hybrid RAG Parser
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+
 A complete end-to-end table-aware document ingestion pipeline for Retrieval-Augmented Generation (RAG) systems that intelligently separates narrative text from structured tables and stores them in specialized databases.
 
 ## Overview
