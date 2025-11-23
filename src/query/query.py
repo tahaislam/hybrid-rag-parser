@@ -232,7 +232,11 @@ YOUR ANSWER:
                 messages=[
                     {"role": "system", "content": "You are a helpful document assistant that only uses provided context."},
                     {"role": "user", "content": prompt}
-                ]
+                ],
+                options={
+                    "temperature": 0.0,  # Set to 0 for deterministic, reproducible results
+                    "top_p": 1.0         # Disable nucleus sampling for consistency
+                }
             )
             
             answer = response['message']['content']
