@@ -191,17 +191,25 @@ CRITICAL INSTRUCTIONS:
    - The document title, headers, and surrounding text provide temporal and contextual information for ALL data in that document
    - When answering about "Q4" or specific time periods, check if the document title indicates this time period
 
-2. TABLE READING:
-   - Read EVERY row in the table, including the FIRST row after the header
-   - Look for values at the intersection of relevant row and column headers
-   - Include ALL relevant details from table cells, including information in parentheses (e.g., "Dual Intel Xeon (28 cores)" - include the core count!)
+2. TABLE READING - READ EVERY SINGLE ROW:
+   - Read EVERY row in the table from top to bottom, including the FIRST row after the header
+   - When a table has a header row (like "| Phase | Duration | Start Date | End Date |"), the data rows come IMMEDIATELY after
+   - The FIRST data row is just as important as any other row - DO NOT SKIP IT
+   - Example: If you see "| Phase | ... |" followed by "| Requirements | ... |", then "Requirements" is the FIRST phase
+   - Count the rows mentally: 1st row, 2nd row, 3rd row, etc. Include ALL of them
 
-3. COMPLETE LISTS:
+3. LISTING VALUES FROM A COLUMN:
+   - When asked to "list all X" where X is a column name, extract EVERY value from that column
+   - Start from the first data row and go to the last data row
+   - Do not skip any rows in between
+   - Example: If asked "list all phases" and the Phase column has 5 rows, list all 5 values
+
+4. COMPLETE LISTS:
    - When listing items from a table, include ALL rows, not just some of them
    - Do not skip the first data row or any other rows
    - If the user asks for a list, provide the COMPLETE list from the table
 
-4. PRECISION:
+5. PRECISION:
    - Be precise and cite specific values when answering from tables
    - If the answer is not found in the context, say "I could not find the answer in the provided documents."
 
