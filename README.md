@@ -1,6 +1,80 @@
 # Hybrid RAG Parser
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+
 A complete end-to-end table-aware document ingestion pipeline for Retrieval-Augmented Generation (RAG) systems that intelligently separates narrative text from structured tables and stores them in specialized databases.
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+  - [Detailed Ingestion Flow](#detailed-ingestion-flow)
+  - [Detailed Query Flow](#detailed-query-flow)
+  - [Data Storage Schema](#data-storage-schema)
+- [Features](#features)
+- [Requirements](#requirements)
+  - [System Dependencies](#system-dependencies)
+  - [Docker Installation](#docker-installation)
+  - [Ollama Installation (For RAG Queries)](#ollama-installation-for-rag-queries)
+- [Installation](#installation)
+  - [1. Clone the Repository](#1-clone-the-repository)
+  - [2. Set Up Python Environment](#2-set-up-python-environment)
+  - [3. Start the Databases with Docker](#3-start-the-databases-with-docker)
+  - [4. Access the Web UIs (Optional)](#4-access-the-web-uis-optional)
+- [Quick Start](#quick-start)
+  - [Option 1: Run the Full Pipeline (Recommended)](#option-1-run-the-full-pipeline-recommended)
+  - [Option 2: Process Documents Without Database Storage](#option-2-process-documents-without-database-storage)
+- [Querying Your RAG System](#querying-your-rag-system)
+  - [Prerequisites](#prerequisites)
+  - [Option 1: Command-Line Interface (Easiest)](#option-1-command-line-interface-easiest)
+  - [Option 2: Python API](#option-2-python-api)
+  - [How It Works: Hybrid RAG](#how-it-works-hybrid-rag)
+  - [Customizing the Query Engine](#customizing-the-query-engine)
+- [Testing the RAG System](#testing-the-rag-system)
+  - [Generate Sample Data and Run Tests](#generate-sample-data-and-run-tests)
+- [Viewing Stored Data](#viewing-stored-data)
+  - [Option 1: Using Web UIs (Easiest)](#option-1-using-web-uis-easiest)
+  - [Option 2: Use the Qdrant Data Viewer Script (Recommended)](#option-2-use-the-qdrant-data-viewer-script-recommended)
+  - [Option 3: Query Databases Programmatically](#option-3-query-databases-programmatically)
+- [Viewing Parsed Content (Before Database Storage)](#viewing-parsed-content-before-database-storage)
+  - [Option 1: Run Example Scripts](#option-1-run-example-scripts)
+  - [Option 2: Access Parsed Data Programmatically](#option-2-access-parsed-data-programmatically)
+  - [Option 3: Save Output to Files](#option-3-save-output-to-files)
+- [Understanding the Output](#understanding-the-output)
+  - [Table Structure](#table-structure)
+  - [Text Chunks](#text-chunks)
+- [Parsing Strategies](#parsing-strategies)
+  - [Choosing a Strategy](#choosing-a-strategy)
+  - [⚠️ Table Formatting Best Practices](#️-table-formatting-best-practices)
+- [Project Structure](#project-structure)
+- [Module Descriptions](#module-descriptions)
+  - [Main Entry Points (Root Level)](#main-entry-points-root-level)
+  - [Source Code (src/)](#source-code-src)
+  - [Tests (tests/)](#tests-tests)
+  - [Examples (examples/)](#examples-examples)
+  - [Documentation](#documentation)
+- [Configuration](#configuration)
+  - [Default Settings](#default-settings)
+  - [Customizing Settings](#customizing-settings)
+- [Pipeline Workflow](#pipeline-workflow)
+- [Database Maintenance](#database-maintenance)
+  - [Clearing All Data](#clearing-all-data)
+- [Docker Management](#docker-management)
+  - [Useful Commands](#useful-commands)
+  - [Accessing Database Shells](#accessing-database-shells)
+- [Troubleshooting](#troubleshooting)
+  - [Python Version Issues](#python-version-issues)
+  - [Docker Issues](#docker-issues)
+  - [Missing System Dependencies](#missing-system-dependencies)
+  - [Import Errors](#import-errors)
+  - [Empty Results](#empty-results)
+  - [Database Connection Errors](#database-connection-errors)
+  - [MongoDB Authentication Failed Error](#mongodb-authentication-failed-error)
+  - [Qdrant UI Shows Weird Characters](#qdrant-ui-shows-weird-characters)
+  - [Ollama Connection Issues](#ollama-connection-issues)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
+- [Acknowledgments](#acknowledgments)
 
 ## Overview
 
@@ -28,7 +102,7 @@ Document Parser (ingest.py)
 Orchestration: run_pipeline.py
 Databases: docker-compose.yml
 
-Query Interface (NEW):
+Query Interface:
     ↓
 User Question → QueryEngine (query.py)
     ├──> Vector Search → Qdrant (semantic similarity)
@@ -37,6 +111,154 @@ User Question → QueryEngine (query.py)
                                 └─> Answer
 
 CLI Tool: ask.py "Your question here"
+```
+
+```mermaid
+graph TB
+    subgraph "Data Ingestion Pipeline"
+        PDF[📄 PDF Document]
+        PARSER[Document Parser<br/>ingest.py]
+        PDF --> PARSER
+
+        PARSER -->|Tables<br/>HTML Format| MONGO[(MongoDB<br/>localhost:27017)]
+        PARSER -->|Text Chunks| EMBED[Embedding Model<br/>embedding.py]
+
+        EMBED -->|384-dim vectors<br/>sentence-transformers| QDRANT[(Qdrant Vector DB<br/>localhost:6333)]
+
+        MONGO -.->|Web UI| MONGOUI[Mongo Express<br/>localhost:8081]
+        QDRANT -.->|Web UI| QDRANTUI[Qdrant UI<br/>localhost:6334]
+    end
+
+    subgraph "Query Pipeline"
+        USER[👤 User Question]
+        CLI[ask.py CLI Tool]
+        ENGINE[QueryEngine<br/>query.py]
+
+        USER --> CLI
+        CLI --> ENGINE
+
+        ENGINE -->|1. Vector Search<br/>Semantic Similarity| QDRANT
+        ENGINE -->|2. Table Search<br/>Filtered by Source| MONGO
+
+        ENGINE -->|3. Combined Context<br/>+ Question| OLLAMA[🤖 Ollama<br/>Local LLM<br/>llama3:8b]
+
+        OLLAMA -->|Generated Answer| ANSWER[💬 Answer]
+    end
+
+    subgraph "Orchestration & Setup"
+        PIPELINE[run_pipeline.py<br/>End-to-end orchestration]
+        DOCKER[docker-compose.yml<br/>Database containers]
+
+        DOCKER -.->|Manages| MONGO
+        DOCKER -.->|Manages| QDRANT
+    end
+
+    style PDF fill:#e1f5ff
+    style MONGO fill:#4caf50,color:#fff
+    style QDRANT fill:#2196f3,color:#fff
+    style OLLAMA fill:#ff9800,color:#fff
+    style ANSWER fill:#4caf50,color:#fff
+    style ENGINE fill:#9c27b0,color:#fff
+```
+
+### Detailed Ingestion Flow
+
+```mermaid
+flowchart LR
+    subgraph Input
+        PDF[📄 PDF Files<br/>in data/]
+    end
+
+    subgraph Processing["Document Processing (ingest.py)"]
+        UNSTRUCTURED[unstructured.io<br/>PDF Parser]
+        FILTER[Table Filter<br/>Remove duplicates]
+
+        PDF --> UNSTRUCTURED
+        UNSTRUCTURED -->|Elements| FILTER
+    end
+
+    subgraph "Table Pipeline"
+        TABLES[📊 Table Elements<br/>HTML Format]
+        FILTER -->|Tables| TABLES
+        TABLES --> MONGO[(MongoDB<br/>document_tables<br/>collection)]
+    end
+
+    subgraph "Text Pipeline"
+        TEXTS[📝 Text Chunks<br/>Filtered clean text]
+        EMBED[sentence-transformers<br/>all-MiniLM-L6-v2]
+        VECTORS[384-dim Vectors]
+
+        FILTER -->|Text| TEXTS
+        TEXTS --> EMBED
+        EMBED --> VECTORS
+        VECTORS --> QDRANT[(Qdrant<br/>document_chunks<br/>collection)]
+    end
+
+    style MONGO fill:#4caf50,color:#fff
+    style QDRANT fill:#2196f3,color:#fff
+    style FILTER fill:#ff9800,color:#fff
+```
+
+### Detailed Query Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant CLI as ask.py
+    participant Engine as QueryEngine
+    participant Embedder as Embedding Model
+    participant Qdrant as Qdrant DB
+    participant Mongo as MongoDB
+    participant LLM as Ollama (llama3:8b)
+
+    User->>CLI: "What was Q4 revenue?"
+    CLI->>Engine: ask(question)
+
+    Note over Engine: Step 1: Vector Search
+    Engine->>Embedder: Embed question
+    Embedder-->>Engine: Question vector
+    Engine->>Qdrant: Search similar chunks (top 3)
+    Qdrant-->>Engine: Relevant text chunks + source file
+
+    Note over Engine: Step 2: Table Retrieval
+    Engine->>Mongo: Find tables (filtered by source)
+    Mongo-->>Engine: Relevant tables (up to 5)
+
+    Note over Engine: Step 3: Format Context
+    Engine->>Engine: Convert HTML tables to markdown
+    Engine->>Engine: Format text chunks
+    Engine->>Engine: Build LLM prompt
+
+    Note over Engine: Step 4: Generate Answer
+    Engine->>LLM: Prompt with context + question<br/>(temperature=0.0)
+    LLM-->>Engine: Generated answer
+
+    Engine-->>CLI: Answer text
+    CLI-->>User: Display answer
+```
+
+### Data Storage Schema
+
+```mermaid
+erDiagram
+    MONGODB ||--o{ TABLE : stores
+    QDRANT ||--o{ CHUNK : stores
+
+    TABLE {
+        string table_id
+        string content
+        string content_type
+        string source_filename
+        dict metadata
+    }
+
+    CHUNK {
+        uuid id
+        array vector_384
+        string text
+        string source_filename
+        dict metadata
+    }
 ```
 
 ## Features
@@ -56,27 +278,19 @@ CLI Tool: ask.py "Your question here"
 - **100% Private**: Uses local Ollama models - no data sent to external APIs
 - **Comprehensive Testing**: Sample PDFs and 20+ test cases to validate RAG performance
 - **Migration Ready**: Designed for easy migration to Microsoft Fabric
-
-## Recent Improvements ✨
-
-**Major RAG System Enhancements** (November 2025):
-
-1. **🎯 Deterministic Query Results**
+- **Deterministic Query Results**
    - Added configurable LLM temperature (default: 0.0 for consistency)
    - Same question now always produces the same answer
    - Critical for testing and production reliability
-
-2. **🧹 Intelligent Table Filtering**
+- **Intelligent Table Filtering**
    - Automatically filters duplicate table data from text chunks
    - Reduces LLM confusion by 100%
    - Generic solution works for any PDF
-
-3. **📊 Temperature Presets**
+- **Temperature Presets**
    - `TEMPERATURE_DETERMINISTIC` (0.0) - Default for factual Q&A
    - `TEMPERATURE_BALANCED` (0.3) - Slight variation while staying factual
    - `TEMPERATURE_CREATIVE` (0.8) - For creative tasks
-
-4. **✅ Test Suite Reliability**
+- **Test Suite Reliability**
    - All 20 tests now pass consistently
    - Non-deterministic failures eliminated
    - Reproducible results for debugging
@@ -91,8 +305,6 @@ engine = QueryEngine()
 # Or choose a different mode
 engine = QueryEngine(temperature=QueryEngine.TEMPERATURE_BALANCED)
 ```
-
-📚 **See [RAG_IMPROVEMENTS.md](RAG_IMPROVEMENTS.md) for detailed documentation**
 
 ## Requirements
 
@@ -835,33 +1047,82 @@ When you run `python run_pipeline.py`, here's what happens:
    - All text searchable via semantic similarity in Qdrant
    - Access via web UIs or programmatic queries
 
-## Development Roadmap
+## Database Maintenance
 
-### Phase 1: Local Development ✅ COMPLETE
-- [x] PDF parsing and table extraction
-- [x] Text/table separation
-- [x] MongoDB integration for table storage
-- [x] Qdrant integration for vector embeddings
-- [x] Sentence-transformer embeddings (384-dim)
-- [x] Docker containerization
-- [x] Web UIs for data visualization
-- [x] Full pipeline orchestration
+### Clearing All Data
 
-### Phase 2: Query Interface ✅ CORE COMPLETE
-- [x] Hybrid query API (combine table lookups + vector search)
-- [x] Local LLM integration with Ollama
-- [x] Smart retrieval strategy (file-based filtering)
-- [x] CLI tool for easy querying
-- [x] Python API for programmatic access
-- [ ] RESTful API endpoints (Future)
-- [ ] Query optimization and caching (Future)
+To clear all ingested data (useful before re-ingesting with updated PDFs):
 
-### Phase 3: Microsoft Fabric Migration (Planned)
-- [ ] Migrate MongoDB → Cosmos DB (MongoDB API)
-- [ ] Migrate Qdrant → Fabric Real-Time Intelligence (KQL)
-- [ ] Update db_connectors.py for Fabric compatibility
-- [ ] Azure ML endpoint for embeddings
-- [ ] Production monitoring and logging
+```bash
+python clear_databases.py
+# Type 'yes' to confirm
+```
+
+This will:
+- Delete all documents from MongoDB
+- Delete and recreate the Qdrant collection
+- Provide a clean slate for re-ingestion
+
+**When to use:**
+- After fixing PDF table formatting issues
+- Before re-ingesting updated documents
+- To start fresh with new data
+
+**Complete reset workflow:**
+```bash
+# 1. Clear old data
+python clear_databases.py
+
+# 2. Regenerate PDFs (if needed)
+python generate_sample_pdfs.py
+
+# 3. Re-ingest
+python run_pipeline.py
+
+# 4. Test queries
+python test_rag_queries.py
+```
+
+**Alternative: Docker reset (nuclear option)**
+```bash
+# Completely wipe databases and restart containers
+docker-compose down -v
+docker-compose up -d
+```
+
+## Docker Management
+
+### Useful Commands
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Stop all services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Restart a specific service
+docker-compose restart mongo
+
+# Stop and remove all data (volumes)
+docker-compose down -v
+
+# View resource usage
+docker stats
+```
+
+### Accessing Database Shells
+
+```bash
+# MongoDB shell
+docker exec -it hybrid-rag-mongo mongosh -u root -p examplepassword
+
+# Check Qdrant collections
+curl http://localhost:6333/collections
+```
 
 ## Troubleshooting
 
@@ -1074,7 +1335,7 @@ Contributions are welcome! Please:
 
 ## License
 
-[Add your license information here]
+MIT License - see [LICENSE](LICENSE) file
 
 ## Support
 
@@ -1095,80 +1356,3 @@ Built with:
 - [Ollama](https://ollama.com/) - Local LLM inference for RAG queries
 - [Docker](https://www.docker.com/) - Containerization
 - [Mongo Express](https://github.com/mongo-express/mongo-express) - MongoDB web interface
-
-## Database Maintenance
-
-### Clearing All Data
-
-To clear all ingested data (useful before re-ingesting with updated PDFs):
-
-```bash
-python clear_databases.py
-# Type 'yes' to confirm
-```
-
-This will:
-- Delete all documents from MongoDB
-- Delete and recreate the Qdrant collection
-- Provide a clean slate for re-ingestion
-
-**When to use:**
-- After fixing PDF table formatting issues
-- Before re-ingesting updated documents
-- To start fresh with new data
-
-**Complete reset workflow:**
-```bash
-# 1. Clear old data
-python clear_databases.py
-
-# 2. Regenerate PDFs (if needed)
-python generate_sample_pdfs.py
-
-# 3. Re-ingest
-python run_pipeline.py
-
-# 4. Test queries
-python test_rag_queries.py
-```
-
-**Alternative: Docker reset (nuclear option)**
-```bash
-# Completely wipe databases and restart containers
-docker-compose down -v
-docker-compose up -d
-```
-
-## Docker Management
-
-### Useful Commands
-
-```bash
-# Start all services
-docker-compose up -d
-
-# Stop all services
-docker-compose down
-
-# View logs
-docker-compose logs -f
-
-# Restart a specific service
-docker-compose restart mongo
-
-# Stop and remove all data (volumes)
-docker-compose down -v
-
-# View resource usage
-docker stats
-```
-
-### Accessing Database Shells
-
-```bash
-# MongoDB shell
-docker exec -it hybrid-rag-mongo mongosh -u root -p examplepassword
-
-# Check Qdrant collections
-curl http://localhost:6333/collections
-```

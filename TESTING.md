@@ -2,6 +2,35 @@
 
 This guide explains how to generate sample data and test the RAG query system comprehensively.
 
+- [Overview](#overview)
+  - [Testing Architecture](#testing-architecture)
+- [Quick Start](#quick-start)
+  - [1. Generate Sample PDFs](#1-generate-sample-pdfs)
+  - [2. Ingest the Sample Data](#2-ingest-the-sample-data)
+  - [3. Run the Test Suite](#3-run-the-test-suite)
+- [Sample PDFs Content](#sample-pdfs-content)
+  - [1. project\_budget.pdf](#1-project_budgetpdf)
+  - [2. financial\_report.pdf](#2-financial_reportpdf)
+  - [3. research\_results.pdf](#3-research_resultspdf)
+  - [4. product\_specs.pdf](#4-product_specspdf)
+  - [5. sales\_report.pdf](#5-sales_reportpdf)
+- [Test Cases Overview](#test-cases-overview)
+  - [Simple Lookups (Tests 1-6)](#simple-lookups-tests-1-6)
+  - [Identification Queries (Tests 7, 15)](#identification-queries-tests-7-15)
+  - [Metric Extraction (Tests 8-12, 16)](#metric-extraction-tests-8-12-16)
+  - [Regional/Categorical Data (Tests 13-14)](#regionalcategorical-data-tests-13-14)
+  - [Complex Queries (Tests 17-20)](#complex-queries-tests-17-20)
+- [Expected Test Results](#expected-test-results)
+- [Interpreting Test Results](#interpreting-test-results)
+- [Manual Testing](#manual-testing)
+- [Troubleshooting Test Failures](#troubleshooting-test-failures)
+  - [Common Issues](#common-issues)
+  - [Debugging Steps](#debugging-steps)
+- [Performance Benchmarks](#performance-benchmarks)
+- [Customizing Tests](#customizing-tests)
+- [Next Steps](#next-steps)
+- [Support](#support)
+
 ## Overview
 
 The testing suite includes:
@@ -9,6 +38,33 @@ The testing suite includes:
 - **20 comprehensive test cases** covering various query patterns
 - **Automated validation** of expected answers
 - **Performance metrics** for response times
+
+### Testing Architecture
+
+```mermaid
+flowchart TD
+    subgraph "Test Data Generation"
+        GEN[generate_sample_pdfs.py]
+        GEN --> PDF1[5 Main PDFs]
+        GEN --> PDF2[3 Sample PDFs]
+    end
+
+    subgraph "Test Execution"
+        TEST[test_rag_queries.py<br/>20 test cases]
+        PDF1 --> INGEST[Ingestion Pipeline]
+        PDF2 --> INGEST
+        INGEST --> DBS[(Databases)]
+        DBS --> TEST
+    end
+
+    subgraph "Test Results"
+        TEST --> PASS[✓ 20/20 Pass<br/>Deterministic]
+        TEST -.->|If fails| DEBUG[debug/ scripts]
+    end
+
+    style PASS fill:#4caf50,color:#fff
+    style DEBUG fill:#ff9800,color:#fff
+```
 
 ## Quick Start
 
