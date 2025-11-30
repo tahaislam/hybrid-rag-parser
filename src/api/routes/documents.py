@@ -12,7 +12,7 @@ from src.api.schemas import (
 )
 from src.api.config import config
 from src.ingestion.ingest import DocumentProcessor
-from src.ingestion.embedding import EmbeddingService
+from src.ingestion.embedding import EmbeddingModel
 from src.database.db_connectors import MongoConnector, QdrantConnector
 
 logger = logging.getLogger(__name__)
@@ -100,9 +100,8 @@ async def ingest_document(
         processor = DocumentProcessor()
         tables, texts = processor.process(file_path, strategy=parse_strategy)
 
-        # Generate embeddings
-        embedding_service = EmbeddingService()
-        embeddings = embedding_service.embed_texts(texts)
+        # Generate embeddings and prepare Qdrant points
+        embedding_model = EmbeddingModel()
 
         # Store in databases
         mongo = MongoConnector()
@@ -116,9 +115,8 @@ async def ingest_document(
             })
 
         # Store text chunks in Qdrant
-        qdrant_points = embedding_service.prepare_qdrant_points(
-            texts, embeddings, file.filename
-        )
+        # prepare_qdrant_points returns a generator of point dicts
+        qdrant_points = list(embedding_model.prepare_qdrant_points(texts, file.filename))
         qdrant.client.upsert(
             collection_name="document_chunks",
             points=qdrant_points,

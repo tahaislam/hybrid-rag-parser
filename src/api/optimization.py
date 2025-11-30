@@ -36,12 +36,15 @@ class QueryOptimizer:
 
         # Compute embedding
         try:
-            embedding = self.embedder.embed_text(text)
+            # embed_texts expects a list, so wrap the text
+            embeddings = self.embedder.embed_texts([text])
+            embedding = embeddings[0] if embeddings else None
             self.embedding_cache_misses += 1
 
-            # Cache the result
-            self.cache.set_embedding_cache(text, embedding)
-            logger.debug(f"Embedding cached for: {text[:30]}...")
+            if embedding:
+                # Cache the result
+                self.cache.set_embedding_cache(text, embedding)
+                logger.debug(f"Embedding cached for: {text[:30]}...")
             return embedding
 
         except Exception as e:
